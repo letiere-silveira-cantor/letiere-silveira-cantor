@@ -11,6 +11,28 @@
     "buttonText": "",
     "link": ""
   },
+  "genres": [
+    {
+      "icon": "🤠",
+      "name": "Sertanejo",
+      "text": "Do sertanejo raiz ao universitário: modões, sofrência e os sucessos do momento."
+    },
+    {
+      "icon": "🇧🇷",
+      "name": "MPB",
+      "text": "Clássicos da música popular brasileira em versões voz e violão, ideais para momentos especiais."
+    },
+    {
+      "icon": "🌴",
+      "name": "Reggae",
+      "text": "Clima leve e praiano, a cara de Florianópolis, para fins de tarde e festas ao ar livre."
+    },
+    {
+      "icon": "🎸",
+      "name": "Rock",
+      "text": "Rock nacional e internacional em versões acústicas que levantam qualquer público."
+    }
+  ],
   "reviews": [],
   "busyDates": [],
   "videos": []

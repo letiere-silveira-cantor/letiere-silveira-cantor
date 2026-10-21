@@ -215,7 +215,7 @@
   @media (max-width: 760px) { .quick-grid { grid-template-columns: 1fr; } }
 
   /* Estilos */
-  .genres { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 36px; }
+  .genres { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 16px; margin-top: 36px; }
   .genre {
     background: linear-gradient(180deg, var(--card), var(--bg-2));
     border: 1px solid var(--line); border-radius: var(--radius); padding: 26px 22px;
@@ -507,7 +507,7 @@
         <p class="eyebrow">Letieri Silveira · Músico &amp; Cantor</p>
         <h1 id="slogan"><span id="slogan-text">Seu grande momento merece</span> <span class="hl" id="slogan-hl">trilha sonora ao vivo.</span></h1>
         <p class="role" id="slogan-sub">Voz, violão e emoção para o seu evento em Florianópolis e região.</p>
-        <div class="chips" aria-label="Estilos musicais">
+        <div class="chips" id="genre-chips" aria-label="Estilos musicais">
           <span class="chip">SERTANEJO</span><span class="chip">MPB</span><span class="chip">REGGAE</span><span class="chip">ROCK</span>
         </div>
         <div class="rating"><span class="stars" aria-hidden="true">★★★★★</span> Cantor bem avaliado · Coco Bambu e Don Pierro</div>
@@ -600,9 +600,9 @@
   <section id="estilos">
     <div class="wrap">
       <p class="eyebrow">Repertório</p>
-      <h2>Quatro estilos, um show sob medida</h2>
+      <h2 id="genres-title">Quatro estilos, um show sob medida</h2>
       <p class="lead">O repertório é montado para o seu público: do romântico ao animado, passando pelos clássicos que todo mundo canta junto.</p>
-      <div class="genres">
+      <div class="genres" id="genres-grid">
         <article class="genre">
           <div class="ico" aria-hidden="true">🤠</div>
           <h3>Sertanejo</h3>
@@ -821,7 +821,7 @@
         </div>
         <fieldset class="field full">
           <legend>Estilos que você quer no repertório</legend>
-          <div class="checks">
+          <div class="checks" id="genre-checks">
             <label><input type="checkbox" name="estilos" value="Sertanejo">Sertanejo</label>
             <label><input type="checkbox" name="estilos" value="MPB">MPB</label>
             <label><input type="checkbox" name="estilos" value="Reggae">Reggae</label>
@@ -1057,6 +1057,51 @@
     });
   }
 
+  const NUMBERS = ["", "Um estilo", "Dois", "Três", "Quatro", "Cinco", "Seis", "Sete", "Oito", "Nove", "Dez", "Onze", "Doze"];
+
+  function applyGenres(genres) {
+    if (!genres || !genres.length) return;
+    const chips = document.getElementById("genre-chips");
+    const grid = document.getElementById("genres-grid");
+    const checks = document.getElementById("genre-checks");
+    chips.replaceChildren();
+    grid.replaceChildren();
+    checks.replaceChildren();
+    for (const g of genres) {
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.textContent = g.name.toUpperCase();
+      chips.append(chip);
+
+      const card = document.createElement("article");
+      card.className = "genre";
+      const ico = document.createElement("div");
+      ico.className = "ico";
+      ico.setAttribute("aria-hidden", "true");
+      ico.textContent = g.icon || "🎵";
+      const h3 = document.createElement("h3");
+      h3.textContent = g.name;
+      card.append(ico, h3);
+      if (g.text) {
+        const p = document.createElement("p");
+        p.textContent = g.text;
+        card.append(p);
+      }
+      grid.append(card);
+
+      const label = document.createElement("label");
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.name = "estilos";
+      input.value = g.name;
+      label.append(input, g.name);
+      checks.append(label);
+    }
+    const n = genres.length;
+    document.getElementById("genres-title").textContent =
+      n === 1 ? "Um estilo, um show sob medida" : `${NUMBERS[n] || n} estilos, um show sob medida`;
+  }
+
   function applyReviews(reviews) {
     const box = document.getElementById("reviews");
     box.replaceChildren();
@@ -1121,6 +1166,7 @@
       applyPromo(cfg.promo);
       applyVideos(cfg.videos);
       applyReviews(cfg.reviews);
+      applyGenres(cfg.genres);
       (cfg.busyDates || []).forEach((d) => busyDates.add(d));
       calendar.render();
       checkDate();

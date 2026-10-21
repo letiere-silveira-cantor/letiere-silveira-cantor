@@ -230,6 +230,23 @@
   .check { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: .9rem; margin-bottom: 16px; cursor: pointer; }
   .check input { accent-color: var(--gold); width: 18px; height: 18px; }
 
+  /* Estilos musicais */
+  .genre-list { display: grid; gap: 10px; margin-bottom: 14px; }
+  .genre-row {
+    display: grid; grid-template-columns: 64px minmax(0, 1fr) minmax(0, 2fr) auto; gap: 10px; align-items: end;
+    padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg);
+  }
+  .genre-row .field { margin: 0; }
+  .genre-row .g-icon { text-align: center; font-size: 1.2rem; padding: 10px 6px; }
+  .genre-row .row-actions { display: flex; gap: 6px; }
+  .genre-row .icon-btn { width: 38px; height: 38px; font-size: 1rem; }
+  .genre-row .icon-btn:disabled { opacity: .3; cursor: default; }
+  @media (max-width: 760px) {
+    .genre-row { grid-template-columns: 64px minmax(0, 1fr); }
+    .genre-row .g-text-field { grid-column: 1 / -1; }
+    .genre-row .row-actions { grid-column: 1 / -1; justify-content: flex-end; }
+  }
+
   /* Avaliações */
   .reviews-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
   .reviews-grid > * { min-width: 0; }
@@ -326,6 +343,7 @@
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-slogan" id="t-slogan" tabindex="-1">✍️ Slogan</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-agenda" id="t-agenda" tabindex="-1">📅 Agenda</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-promo" id="t-promo" tabindex="-1">🎁 Oferta especial</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-genres" id="t-genres" tabindex="-1">🎵 Estilos</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-reviews" id="t-reviews" tabindex="-1">⭐ Avaliações</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-videos" id="t-videos" tabindex="-1">🎬 Vídeos</button>
   </nav>
@@ -531,6 +549,20 @@
       </div>
     </section>
 
+    <!-- Estilos musicais -->
+    <section class="panel" role="tabpanel" id="p-genres" aria-labelledby="t-genres" hidden>
+      <h2>Estilos musicais</h2>
+      <p class="hint">Aparecem nas etiquetas do topo, nos cartões da seção Repertório e nas opções do formulário de agendamento. Use as setas para mudar a ordem. Até 12 estilos.</p>
+      <form id="genres-form">
+        <div class="genre-list" id="genre-list"></div>
+        <div class="save-row">
+          <button class="btn btn-ghost" type="button" id="add-genre">+ Adicionar estilo</button>
+          <button class="btn btn-gold" type="submit">Salvar estilos</button>
+          <span class="status" role="status"></span>
+        </div>
+      </form>
+    </section>
+
     <!-- Avaliações -->
     <section class="panel" role="tabpanel" id="p-reviews" aria-labelledby="t-reviews" hidden>
       <h2>Avaliações de clientes</h2>
@@ -697,6 +729,8 @@
     fillSlogan();
     fillPromo();
     fillReviews(config.reviews || []);
+    genres = (config.genres || []).map((g) => ({ ...g }));
+    renderGenres();
     const agenda = await api("/api/admin/agenda");
     busy = new Set(agenda.busyDates);
     setFixed(agenda.fixed);
@@ -785,6 +819,94 @@
   $("slogan-form").addEventListener("submit", (e) => {
     e.preventDefault();
     saveSettings(e.target, { slogan: { text: $("s-text").value, highlight: $("s-hl").value, subtitle: $("s-sub").value } });
+  });
+
+  // ---------- Estilos musicais ----------
+  let genres = [];
+
+  function renderGenres() {
+    const list = $("genre-list");
+    list.replaceChildren();
+    genres.forEach((g, i) => {
+      const row = document.createElement("div");
+      row.className = "genre-row";
+      const field = (label, cls, input) => {
+        const wrap = document.createElement("div");
+        wrap.className = "field " + (cls || "");
+        const id = `g-${cls || "f"}-${i}`;
+        const lb = document.createElement("label");
+        lb.htmlFor = id;
+        lb.textContent = label;
+        input.id = id;
+        wrap.append(lb, input);
+        return wrap;
+      };
+      const icon = document.createElement("input");
+      icon.type = "text";
+      icon.className = "g-icon";
+      icon.maxLength = 8;
+      icon.placeholder = "🎵";
+      icon.value = g.icon || "";
+      icon.addEventListener("input", () => { g.icon = icon.value; });
+      const name = document.createElement("input");
+      name.type = "text";
+      name.maxLength = 40;
+      name.placeholder = "Ex.: Pagode";
+      name.value = g.name || "";
+      name.addEventListener("input", () => { g.name = name.value; });
+      const text = document.createElement("input");
+      text.type = "text";
+      text.maxLength = 160;
+      text.placeholder = "Descrição curta (opcional)";
+      text.value = g.text || "";
+      text.addEventListener("input", () => { g.text = text.value; });
+
+      const actions = document.createElement("div");
+      actions.className = "row-actions";
+      const mk = (label, aria, disabled, fn, cls = "icon-btn") => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = cls;
+        b.textContent = label;
+        b.setAttribute("aria-label", aria);
+        b.disabled = disabled;
+        b.addEventListener("click", fn);
+        return b;
+      };
+      actions.append(
+        mk("↑", "Subir", i === 0, () => { [genres[i - 1], genres[i]] = [genres[i], genres[i - 1]]; renderGenres(); }),
+        mk("↓", "Descer", i === genres.length - 1, () => { [genres[i + 1], genres[i]] = [genres[i], genres[i + 1]]; renderGenres(); }),
+        mk("×", `Remover ${g.name || "estilo"}`, genres.length === 1, () => { genres.splice(i, 1); renderGenres(); }),
+      );
+      row.append(field("Ícone", "g-icon-field", icon), field("Nome do estilo", "g-name-field", name), field("Descrição", "g-text-field", text), actions);
+      list.append(row);
+    });
+    $("add-genre").disabled = genres.length >= 12;
+  }
+
+  $("add-genre").addEventListener("click", () => {
+    genres.push({ icon: "🎵", name: "", text: "" });
+    renderGenres();
+    $(`g-g-name-field-${genres.length - 1}`)?.focus();
+  });
+
+  $("genres-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const status = form.querySelector(".status");
+    const btn = form.querySelector('[type="submit"]');
+    btn.disabled = true;
+    setStatus(status, "Salvando…");
+    try {
+      config = await api("/api/admin/genres", { method: "PUT", body: { genres } });
+      genres = config.genres.map((g) => ({ ...g }));
+      renderGenres();
+      setStatus(status, `✓ Salvo! ${genres.length} estilo${genres.length > 1 ? "s" : ""} no site.`, "ok");
+    } catch (err) {
+      setStatus(status, err.message, "err");
+    } finally {
+      btn.disabled = false;
+    }
   });
 
   // ---------- Avaliações ----------
