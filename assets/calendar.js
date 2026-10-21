@@ -1,8 +1,11 @@
-// Calendário mensal usado no site (clientes veem as datas) e no admin (Letieri edita as datas).
+// Calendário em forma de braço de violão, usado no site (clientes veem as datas) e no admin (Letieri edita).
+// Cada coluna é uma casa do braço (um dia da semana) e cada corda é uma semana do mês.
+// À direita fica a mão do violão com as tarraxas de afinação.
 (function () {
   const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho",
     "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
   const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const TUNING = ["E", "B", "G", "D", "A", "E"]; // da 1ª (mais fina, em cima) à 6ª corda
   const pad = (n) => String(n).padStart(2, "0");
   const key = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
   const todayKey = () => { const t = new Date(); return key(t.getFullYear(), t.getMonth(), t.getDate()); };
@@ -27,17 +30,18 @@
       const offset = (y - first.y) * 12 + (m - first.m);
       const startDow = new Date(y, m, 1).getDay();
       const days = new Date(y, m + 1, 0).getDate();
-      let cells = "";
-      for (let i = 0; i < startDow; i++) cells += `<span class="cal-day cal-empty" aria-hidden="true"></span>`;
-      for (let d = 1; d <= days; d++) {
+      let frets = "";
+      for (let i = 0; i < 42; i++) {
+        const d = i - startDow + 1;
+        if (d < 1 || d > days) { frets += `<span class="fret"></span>`; continue; }
         const k = key(y, m, d);
         const past = k < today;
         const b = !past && isBusy(k);
         const cls = ["cal-day", past ? "is-past" : b ? "is-busy" : "is-free"];
         if (k === today) cls.push("is-today");
         if (isSelected(k)) cls.push("is-selected");
-        const label = `${d} de ${MONTHS[m].toLowerCase()}, ${past ? "data passada" : b ? busy : free}`;
-        cells += `<button type="button" class="${cls.join(" ")}" data-key="${k}" aria-label="${label}"${past ? " disabled" : ""}>${d}</button>`;
+        const label = `${WEEKDAYS[i % 7]}, ${d} de ${MONTHS[m].toLowerCase()}: ${past ? "data passada" : b ? busy : free}`;
+        frets += `<span class="fret"><button type="button" class="${cls.join(" ")}" data-key="${k}" aria-label="${label}"${past ? " disabled" : ""}>${d}</button></span>`;
       }
       root.innerHTML = `
         <div class="cal-head">
@@ -45,8 +49,16 @@
           <strong class="cal-title" aria-live="polite">${MONTHS[m]} ${y}</strong>
           <button type="button" class="cal-nav" data-nav="1" aria-label="Próximo mês"${offset >= monthsAhead ? " disabled" : ""}>›</button>
         </div>
-        <div class="cal-grid cal-week" aria-hidden="true">${WEEKDAYS.map((w) => `<span>${w}</span>`).join("")}</div>
-        <div class="cal-grid">${cells}</div>`;
+        <div class="neck-labels" aria-hidden="true">${WEEKDAYS.map((w) => `<span>${w}</span>`).join("")}<span class="tune-label">Afinação</span></div>
+        <div class="neck">
+          <div class="neck-board">
+            <i class="inlay" style="--col:1"></i><i class="inlay" style="--col:3"></i><i class="inlay" style="--col:5"></i>
+            ${frets}
+          </div>
+          <div class="neck-nut" aria-hidden="true"></div>
+          <div class="neck-head" aria-hidden="true">${TUNING.map((n) => `<span class="peg"><i></i><b>${n}</b></span>`).join("")}</div>
+          <div class="neck-strings" aria-hidden="true">${TUNING.map((_, i) => `<i style="--s:${i}"></i>`).join("")}</div>
+        </div>`;
     }
 
     root.addEventListener("click", (e) => {

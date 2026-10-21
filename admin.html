@@ -96,7 +96,9 @@
   .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; }
   .panel h2 { font-size: 1.6rem; }
   .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
-  @media (max-width: 820px) { .cols { grid-template-columns: 1fr; } .panel { padding: 20px; } }
+  .agenda-cols { grid-template-columns: 1.5fr .5fr; }
+  @media (max-width: 820px) { .cols, .agenda-cols { grid-template-columns: 1fr; } .panel { padding: 20px; } }
+  @media (max-width: 560px) { .panel { padding: 16px 10px; } }
 
   .preview { border: 1px dashed var(--line); border-radius: var(--radius); padding: 22px; background: var(--bg); }
   .preview-label { font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
@@ -122,11 +124,11 @@
   .status.err { color: var(--danger); }
 
   /* Agenda */
-  .cal-wrap { max-width: 460px; }
+  .cal-wrap { min-width: 0; }
   .busy-list { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-wrap: wrap; gap: 8px; max-height: 260px; overflow: auto; }
   .busy-list li {
     display: inline-flex; align-items: center; gap: 6px; padding: 5px 6px 5px 12px; border-radius: 999px; font-size: .85rem; font-weight: 600;
-    background: rgba(138, 59, 52, .22); border: 1px solid rgba(200, 90, 80, .35);
+    background: #0b0b0b; border: 1px solid rgba(255, 255, 255, .2);
   }
   .busy-list button { border: 0; background: transparent; color: var(--text); cursor: pointer; font-size: 1rem; width: 24px; height: 24px; border-radius: 50%; }
   .busy-list button:hover { background: rgba(255, 255, 255, .1); }
@@ -143,6 +145,91 @@
   progress { width: 100%; height: 10px; accent-color: var(--gold); margin-top: 10px; }
   .box { border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
   .box h3 { font-size: 1.15rem; }
+
+  /* Dashboard */
+  .dash-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+  .dash-head h2 { margin: 0; }
+  .month-nav { display: flex; align-items: center; gap: 10px; }
+  .month-nav strong { font-family: "Fraunces", serif; font-size: 1.15rem; min-width: 150px; text-align: center; }
+  .icon-btn {
+    width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.3rem; line-height: 1;
+    color: var(--text); background: transparent; border: 1px solid var(--line);
+  }
+  .icon-btn:hover { border-color: var(--gold); color: var(--gold-2); }
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .kpi { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 4px; }
+  .kpi-label { color: var(--muted); font-weight: 700; font-size: .82rem; text-transform: uppercase; letter-spacing: .08em; }
+  .kpi-value { font-family: "Fraunces", serif; font-size: clamp(1.7rem, 3.6vw, 2.3rem); line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .kpi-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: .85rem; color: var(--muted); }
+  .delta { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; font-weight: 700; padding: 2px 9px; border-radius: 999px; font-size: .8rem; }
+  .delta.up { color: #5fe08f; background: rgba(37, 211, 102, .12); }
+  .delta.down { color: #f09a90; background: rgba(224, 120, 108, .14); }
+  .delta.flat { color: var(--muted); background: rgba(255, 255, 255, .06); }
+  .dash-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 16px; margin-top: 16px; align-items: start; }
+  .dash-grid.even { grid-template-columns: .85fr 1.15fr; }
+  .dash-grid > *, .kpis > *, .cols > *, .two > * { min-width: 0; }
+  @media (max-width: 560px) { .chart, .chart-labels { gap: 4px; } .bar-value { font-size: .68rem; } }
+  @media (max-width: 900px) { .kpis, .dash-grid, .dash-grid.even { grid-template-columns: 1fr; } }
+
+  .chart { position: relative; height: 220px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; align-items: end; padding-top: 26px; border-bottom: 1px solid var(--line); }
+  .chart-grid { position: absolute; inset: 26px 0 0; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; }
+  .chart-grid i { border-top: 1px dashed rgba(255, 255, 255, .07); }
+  .bar-col { position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; cursor: default; outline: none; }
+  .chart-bar { width: min(46px, 70%); border-radius: 4px 4px 0 0; background: #6b5535; min-height: 2px; transition: filter .12s ease; }
+  .bar-col.is-prev .chart-bar { background: #a47f45; }
+  .bar-col.is-current .chart-bar { background: var(--gold); }
+  .bar-col:hover .chart-bar, .bar-col:focus-visible .chart-bar { filter: brightness(1.2); }
+  .bar-col:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 2px; border-radius: 4px; }
+  .bar-value { font-size: .78rem; font-weight: 700; margin-bottom: 4px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .chart-labels { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin-top: 8px; text-align: center; font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .chart-labels .cur { color: var(--text); }
+  .tooltip {
+    position: absolute; z-index: 5; pointer-events: none; transform: translate(-50%, -100%); margin-top: -8px;
+    background: #2a221b; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: .82rem; white-space: nowrap;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .5);
+  }
+  .tooltip strong { display: block; }
+
+  .cmp { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  .cmp th, .cmp td { padding: 10px 6px; text-align: right; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  .cmp th:first-child, .cmp td:first-child { text-align: left; }
+  .cmp th { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; }
+  .cmp tr:last-child td { border-bottom: 0; }
+
+  .shows-table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  .shows-table th, .shows-table td { padding: 10px 6px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+  .shows-table th { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; }
+  .shows-table td.num, .shows-table th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .shows-table small { display: block; color: var(--muted); }
+  .shows-table .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+  .shows-table tfoot td { font-weight: 700; border-bottom: 0; }
+  .btn-sm { padding: 6px 12px; font-size: .8rem; }
+  .table-wrap { overflow-x: auto; }
+  select {
+    font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line);
+    border-radius: 12px; padding: 12px 14px; width: 100%;
+  }
+  input[type="date"] { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; width: 100%; color-scheme: dark; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .check { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: .9rem; margin-bottom: 16px; cursor: pointer; }
+  .check input { accent-color: var(--gold); width: 18px; height: 18px; }
+  /* Celular: tabelas viram cartões */
+  @media (max-width: 560px) {
+    .cmp thead, .shows-table thead { display: none; }
+    .cmp tr { display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 4px 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .cmp tr:last-child { border-bottom: 0; }
+    .cmp td { border: 0; padding: 0; text-align: left !important; }
+    .cmp td:first-child { grid-column: 1 / -1; font-weight: 700; }
+    .cmp td[data-label]::before { content: attr(data-label); display: block; font-size: .7rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+    .shows-table tr { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .shows-table td { border: 0; padding: 0; }
+    .shows-table td:nth-child(1) { grid-column: 1; grid-row: 1; color: var(--muted); font-size: .82rem; }
+    .shows-table td:nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
+    .shows-table td:nth-child(3) { grid-column: 2; grid-row: 1; }
+    .shows-table td:nth-child(4) { grid-column: 1 / -1; grid-row: 3; }
+    .shows-table td:empty { display: none; }
+    .shows-table .row-actions { justify-content: flex-start; }
+  }
 </style>
 </head>
 <body>
@@ -197,15 +284,101 @@
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Seções do painel">
-    <button class="tab" role="tab" aria-selected="true" aria-controls="p-slogan" id="t-slogan">✍️ Slogan</button>
+    <button class="tab" role="tab" aria-selected="true" aria-controls="p-dash" id="t-dash">📊 Dashboard</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-slogan" id="t-slogan" tabindex="-1">✍️ Slogan</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-agenda" id="t-agenda" tabindex="-1">📅 Agenda</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-promo" id="t-promo" tabindex="-1">📣 Promoção</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-videos" id="t-videos" tabindex="-1">🎬 Vídeos</button>
   </nav>
 
   <main>
+    <!-- Dashboard -->
+    <section class="panel" role="tabpanel" id="p-dash" aria-labelledby="t-dash">
+      <div class="dash-head">
+        <h2>Dashboard</h2>
+        <div class="month-nav">
+          <button class="icon-btn" id="m-prev" type="button" aria-label="Mês anterior">‹</button>
+          <strong id="m-title" aria-live="polite"></strong>
+          <button class="icon-btn" id="m-next" type="button" aria-label="Próximo mês">›</button>
+        </div>
+      </div>
+      <div class="kpis">
+        <article class="kpi">
+          <span class="kpi-label">Shows no mês</span>
+          <strong class="kpi-value" id="k-count"></strong>
+          <span class="kpi-foot" id="f-count"></span>
+        </article>
+        <article class="kpi">
+          <span class="kpi-label">Faturamento fechado</span>
+          <strong class="kpi-value" id="k-total"></strong>
+          <span class="kpi-foot" id="f-total"></span>
+        </article>
+        <article class="kpi">
+          <span class="kpi-label">Ticket médio</span>
+          <strong class="kpi-value" id="k-avg"></strong>
+          <span class="kpi-foot" id="f-avg"></span>
+        </article>
+      </div>
+      <div class="dash-grid">
+        <div class="box">
+          <h3>Faturamento dos últimos 6 meses</h3>
+          <div class="chart" id="chart" role="img"></div>
+          <div class="chart-labels" id="chart-labels" aria-hidden="true"></div>
+        </div>
+        <div class="box">
+          <h3 id="cmp-title">Comparativo com o mês anterior</h3>
+          <div class="table-wrap"><table class="cmp" id="cmp"></table></div>
+        </div>
+      </div>
+      <div class="dash-grid even">
+        <form class="box" id="show-form">
+          <h3 id="show-form-title">Registrar show fechado</h3>
+          <div class="two">
+            <div class="field">
+              <label for="sh-date">Data do show</label>
+              <input type="date" id="sh-date" required>
+            </div>
+            <div class="field">
+              <label for="sh-value">Valor fechado (R$)</label>
+              <input type="text" id="sh-value" inputmode="decimal" placeholder="Ex.: 1.500,00" required>
+            </div>
+          </div>
+          <div class="field">
+            <label for="sh-title">Cliente / local</label>
+            <input type="text" id="sh-title" maxlength="120" placeholder="Ex.: Casamento Ana e João, Jurerê" required>
+          </div>
+          <div class="field">
+            <label for="sh-type">Tipo de evento</label>
+            <select id="sh-type">
+              <option>Casamento</option>
+              <option>Aniversário</option>
+              <option>Bar / Restaurante</option>
+              <option>Casa de show</option>
+              <option>Evento corporativo</option>
+              <option>Formatura</option>
+              <option>Outro evento</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="sh-notes">Observações <small>(opcional)</small></label>
+            <input type="text" id="sh-notes" maxlength="300">
+          </div>
+          <label class="check" id="sh-busy-wrap"><input type="checkbox" id="sh-busy" checked> Marcar a data como ocupada na agenda</label>
+          <div class="save-row">
+            <button class="btn btn-gold" type="submit" id="sh-submit">Registrar show</button>
+            <button class="btn btn-ghost" type="button" id="sh-cancel" hidden>Cancelar edição</button>
+            <span class="status" role="status"></span>
+          </div>
+        </form>
+        <div class="box">
+          <h3 id="list-title">Shows do mês</h3>
+          <div class="table-wrap"><table class="shows-table" id="shows-table"></table></div>
+        </div>
+      </div>
+    </section>
+
     <!-- Slogan -->
-    <section class="panel" role="tabpanel" id="p-slogan" aria-labelledby="t-slogan">
+    <section class="panel" role="tabpanel" id="p-slogan" aria-labelledby="t-slogan" hidden>
       <h2>Slogan do topo</h2>
       <p class="hint">É a frase grande que aparece no começo do site. A parte em destaque fica dourada.</p>
       <div class="cols">
@@ -238,14 +411,14 @@
     <!-- Agenda -->
     <section class="panel" role="tabpanel" id="p-agenda" aria-labelledby="t-agenda" hidden>
       <h2>Agenda disponível</h2>
-      <p class="hint">Toque em uma data para marcar como <b>reservada</b> (vermelho). Toque de novo para liberar (verde). Depois clique em <b>Salvar agenda</b>.</p>
-      <div class="cols">
+      <p class="hint">Toque em uma data para marcar como <b>ocupada</b> (bola preta). Toque de novo para liberar (bola verde). Depois clique em <b>Salvar agenda</b>.</p>
+      <div class="cols agenda-cols">
         <div class="cal-wrap">
           <div id="admin-cal"></div>
-          <div class="cal-legend"><span><i class="lg-free"></i>Disponível</span><span><i class="lg-busy"></i>Reservado</span></div>
+          <div class="cal-legend"><span><i class="lg-free"></i>Disponível</span><span><i class="lg-busy"></i>Ocupado</span><span><i class="lg-today"></i>Hoje</span></div>
         </div>
         <div>
-          <h3>Datas reservadas</h3>
+          <h3>Datas ocupadas</h3>
           <ul class="busy-list" id="busy-list"></ul>
           <div class="save-row">
             <button class="btn btn-gold" id="save-agenda" type="button">Salvar agenda</button>
@@ -334,6 +507,8 @@
   let config = null;
   let busy = new Set();
   let agendaDirty = false;
+  let shows = [];
+  let uploadMode = "local";
 
   async function api(path, { method = "GET", body, headers = {} } = {}) {
     const opts = { method, headers: { "X-Admin": "1", ...headers }, credentials: "same-origin" };
@@ -371,6 +546,9 @@
     agendaDirty = false;
     renderAgenda();
     renderVideos();
+    setupUploads();
+    shows = (await api("/api/admin/shows")).shows;
+    renderDashboard();
   }
 
   $("login-form").addEventListener("submit", async (e) => {
@@ -493,7 +671,7 @@
   // ---------- Agenda ----------
   const adminCal = MiniCalendar.create($("admin-cal"), {
     isBusy: (k) => busy.has(k),
-    labels: { free: "disponível, toque para reservar", busy: "reservado, toque para liberar" },
+    labels: { free: "disponível, toque para ocupar", busy: "ocupado, toque para liberar" },
     onSelect: (k) => {
       busy.has(k) ? busy.delete(k) : busy.add(k);
       agendaDirty = true;
@@ -511,7 +689,7 @@
       const li = document.createElement("li");
       li.className = "empty";
       li.style.cssText = "background:none;border:0;padding:0";
-      li.textContent = "Nenhuma data reservada. Todas as datas aparecem como disponíveis.";
+      li.textContent = "Nenhuma data ocupada. Todas as datas aparecem como disponíveis.";
       list.append(li);
       return;
     }
@@ -640,6 +818,17 @@
     if (!file) return;
     const type = file.type || (file.name.toLowerCase().endsWith(".mov") ? "video/quicktime" : "");
     const title = $("u-title").value.trim() || file.name.replace(/\.[^.]+$/, "");
+    if (uploadMode === "blob") {
+      btn.disabled = true;
+      bar.value = 0;
+      bar.hidden = false;
+      setStatus(status, "Enviando… 0%");
+      uploadToBlob(file, type, title, (pct) => { bar.value = pct; setStatus(status, `Enviando… ${pct}%`); })
+        .then((data) => { config = data; form.reset(); setStatus(status, "✓ Vídeo enviado!", "ok"); renderVideos(); })
+        .catch((err) => setStatus(status, err.message || "Não foi possível enviar o vídeo.", "err"))
+        .finally(() => { btn.disabled = false; bar.hidden = true; });
+      return;
+    }
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `/api/admin/videos/upload?title=${encodeURIComponent(title)}`);
     xhr.setRequestHeader("X-Admin", "1");
@@ -676,10 +865,303 @@
     xhr.send(file);
   });
 
+  // ---------- Dashboard ----------
+  const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+  const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+  const money = (cents) => brl.format(cents / 100);
+  const compact = (cents) => (cents >= 100000 ? `R$ ${(cents / 100000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil` : money(cents));
+  const monthKey = (y, m) => `${y}-${String(m + 1).padStart(2, "0")}`;
+  const shortMonth = (y, m) => `${MONTHS[m].slice(0, 3)}/${String(y).slice(2)}`;
+  let dashY = new Date().getFullYear();
+  let dashM = new Date().getMonth();
+  let editingId = null;
+
+  // "1.500,00", "1500", "1500.5", "R$ 2.000" -> centavos
+  function parseBRL(text) {
+    let s = String(text).replace(/[R$\s]/g, "");
+    if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
+    else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, "");
+    const n = Number(s);
+    return s && Number.isFinite(n) && n >= 0 ? Math.round(n * 100) : NaN;
+  }
+
+  function monthStats(y, m) {
+    const k = monthKey(y, m);
+    const list = shows.filter((s) => s.date.startsWith(k)).sort((a, b) => a.date.localeCompare(b.date));
+    const total = list.reduce((sum, s) => sum + s.value, 0);
+    return { list, count: list.length, total, avg: list.length ? Math.round(total / list.length) : 0 };
+  }
+
+  const shiftMonth = (y, m, delta) => { const d = new Date(y, m + delta, 1); return [d.getFullYear(), d.getMonth()]; };
+
+  function delta(cur, prev, kind) {
+    const el = document.createElement("span");
+    if (cur === prev) { el.className = "delta flat"; el.textContent = "= igual"; return el; }
+    const up = cur > prev;
+    el.className = "delta " + (up ? "up" : "down");
+    if (kind === "count") el.textContent = `${up ? "▲ +" : "▼ "}${cur - prev}`;
+    else if (prev === 0) el.textContent = "▲ novo";
+    else el.textContent = `${up ? "▲" : "▼"} ${Math.abs(Math.round(((cur - prev) / prev) * 100))}%`;
+    return el;
+  }
+
+  function renderDashboard() {
+    const [py, pm] = shiftMonth(dashY, dashM, -1);
+    const cur = monthStats(dashY, dashM);
+    const prev = monthStats(py, pm);
+    const prevName = shortMonth(py, pm);
+    $("m-title").textContent = `${MONTHS[dashM]} ${dashY}`;
+
+    const kpis = [
+      ["count", String(cur.count), String(prev.count), cur.count, prev.count],
+      ["total", money(cur.total), money(prev.total), cur.total, prev.total],
+      ["avg", cur.count ? money(cur.avg) : "—", prev.count ? money(prev.avg) : "—", cur.avg, prev.avg],
+    ];
+    for (const [id, value, prevValue, a, b] of kpis) {
+      $("k-" + id).textContent = value;
+      const foot = $("f-" + id);
+      foot.replaceChildren(delta(a, b, id), `vs ${prevName}: ${prevValue}`);
+    }
+
+    // Tabela comparativa
+    $("cmp-title").textContent = `${MONTHS[dashM]} vs ${MONTHS[pm]}`;
+    const cmp = $("cmp");
+    cmp.replaceChildren();
+    const head = cmp.createTHead().insertRow();
+    for (const t of ["", shortMonth(dashY, dashM), prevName, "Variação"]) {
+      const th = document.createElement("th");
+      th.textContent = t;
+      head.append(th);
+    }
+    const body = cmp.createTBody();
+    for (const [label, a, b, fa, fb, kind] of [
+      ["Shows", cur.count, prev.count, String(cur.count), String(prev.count), "count"],
+      ["Faturamento", cur.total, prev.total, money(cur.total), money(prev.total), "total"],
+      ["Ticket médio", cur.avg, prev.avg, cur.count ? money(cur.avg) : "—", prev.count ? money(prev.avg) : "—", "avg"],
+    ]) {
+      const row = body.insertRow();
+      row.insertCell().textContent = label;
+      const ca = row.insertCell();
+      ca.textContent = fa;
+      ca.dataset.label = shortMonth(dashY, dashM);
+      const cb = row.insertCell();
+      cb.textContent = fb;
+      cb.dataset.label = prevName;
+      row.insertCell().append(delta(a, b, kind));
+    }
+
+    renderChart();
+    renderShowList(cur);
+  }
+
+  function renderChart() {
+    const chart = $("chart");
+    const labels = $("chart-labels");
+    chart.replaceChildren();
+    labels.replaceChildren();
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const [y, m] = shiftMonth(dashY, dashM, -i);
+      months.push({ y, m, ...monthStats(y, m), current: i === 0, prev: i === 1 });
+    }
+    const max = Math.max(...months.map((x) => x.total));
+    const grid = document.createElement("div");
+    grid.className = "chart-grid";
+    grid.innerHTML = "<i></i><i></i><i></i><i></i>";
+    chart.append(grid);
+    const tip = document.createElement("div");
+    tip.className = "tooltip";
+    tip.hidden = true;
+    chart.append(tip);
+    chart.setAttribute("aria-label", "Faturamento por mês: " + months.map((x) => `${MONTHS[x.m]} ${money(x.total)}`).join(", "));
+
+    for (const x of months) {
+      const col = document.createElement("div");
+      col.className = "bar-col" + (x.current ? " is-current" : x.prev ? " is-prev" : "");
+      col.tabIndex = 0;
+      if ((x.current || x.prev) && x.total > 0) {
+        const v = document.createElement("span");
+        v.className = "bar-value";
+        v.textContent = compact(x.total);
+        col.append(v);
+      }
+      const bar = document.createElement("div");
+      bar.className = "chart-bar";
+      bar.style.height = max ? `calc(${(x.total / max) * 100}% - ${x.total && (x.current || x.prev) ? 22 : 0}px)` : "2px";
+      col.append(bar);
+      const show = () => {
+        tip.replaceChildren();
+        const t = document.createElement("strong");
+        t.textContent = `${MONTHS[x.m]} ${x.y}`;
+        tip.append(t, `${money(x.total)} · ${x.count} show${x.count === 1 ? "" : "s"}`);
+        tip.hidden = false;
+        tip.style.left = `${col.offsetLeft + col.offsetWidth / 2}px`;
+        tip.style.top = `${Math.max(30, bar.offsetTop)}px`;
+      };
+      col.addEventListener("mouseenter", show);
+      col.addEventListener("focus", show);
+      col.addEventListener("mouseleave", () => { tip.hidden = true; });
+      col.addEventListener("blur", () => { tip.hidden = true; });
+      col.addEventListener("click", () => { dashY = x.y; dashM = x.m; renderDashboard(); });
+      chart.append(col);
+      const lb = document.createElement("span");
+      lb.textContent = shortMonth(x.y, x.m);
+      if (x.current) lb.className = "cur";
+      labels.append(lb);
+    }
+  }
+
+  function renderShowList(cur) {
+    $("list-title").textContent = `Shows de ${MONTHS[dashM].toLowerCase()} (${cur.count})`;
+    const table = $("shows-table");
+    table.replaceChildren();
+    if (!cur.count) {
+      const row = table.insertRow();
+      const td = row.insertCell();
+      td.className = "empty";
+      td.textContent = "Nenhum show registrado neste mês.";
+      return;
+    }
+    const head = table.createTHead().insertRow();
+    for (const [t, cls] of [["Data", ""], ["Cliente / local", ""], ["Valor", "num"], ["", ""]]) {
+      const th = document.createElement("th");
+      th.textContent = t;
+      if (cls) th.className = cls;
+      head.append(th);
+    }
+    const body = table.createTBody();
+    for (const s of cur.list) {
+      const row = body.insertRow();
+      row.insertCell().textContent = MiniCalendar.formatKey(s.date, { weekday: "short", day: "2-digit", month: "2-digit" });
+      const who = row.insertCell();
+      who.textContent = s.title;
+      const meta = document.createElement("small");
+      meta.textContent = [s.type, s.notes].filter(Boolean).join(" · ");
+      who.append(meta);
+      const val = row.insertCell();
+      val.className = "num";
+      val.textContent = money(s.value);
+      const actions = row.insertCell();
+      const wrap = document.createElement("div");
+      wrap.className = "row-actions";
+      const edit = document.createElement("button");
+      edit.type = "button";
+      edit.className = "btn btn-ghost btn-sm";
+      edit.textContent = "Editar";
+      edit.addEventListener("click", () => startEdit(s));
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "btn btn-danger btn-sm";
+      del.textContent = "Excluir";
+      del.addEventListener("click", async () => {
+        if (!confirm(`Excluir o show “${s.title}”?`)) return;
+        try {
+          shows = (await api(`/api/admin/shows/${encodeURIComponent(s.id)}`, { method: "DELETE" })).shows;
+          if (editingId === s.id) stopEdit();
+          renderDashboard();
+        } catch (err) { alert(err.message); }
+      });
+      wrap.append(edit, del);
+      actions.append(wrap);
+    }
+    const foot = table.createTFoot().insertRow();
+    foot.insertCell().textContent = "Total";
+    foot.insertCell();
+    const total = foot.insertCell();
+    total.className = "num";
+    total.textContent = money(cur.total);
+    foot.insertCell();
+  }
+
+  function startEdit(s) {
+    editingId = s.id;
+    $("sh-date").value = s.date;
+    $("sh-value").value = (s.value / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+    $("sh-title").value = s.title;
+    $("sh-type").value = s.type || "Outro evento";
+    $("sh-notes").value = s.notes || "";
+    $("show-form-title").textContent = "Editar show";
+    $("sh-submit").textContent = "Salvar alterações";
+    $("sh-cancel").hidden = false;
+    $("sh-busy-wrap").hidden = true;
+    $("sh-title").focus();
+  }
+
+  function stopEdit() {
+    editingId = null;
+    $("show-form").reset();
+    $("show-form-title").textContent = "Registrar show fechado";
+    $("sh-submit").textContent = "Registrar show";
+    $("sh-cancel").hidden = true;
+    $("sh-busy-wrap").hidden = false;
+  }
+
+  $("sh-cancel").addEventListener("click", stopEdit);
+  $("m-prev").addEventListener("click", () => { [dashY, dashM] = shiftMonth(dashY, dashM, -1); renderDashboard(); });
+  $("m-next").addEventListener("click", () => { [dashY, dashM] = shiftMonth(dashY, dashM, 1); renderDashboard(); });
+
+  $("show-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const status = form.querySelector(".status");
+    const value = parseBRL($("sh-value").value);
+    if (Number.isNaN(value)) return setStatus(status, "Valor inválido. Use, por exemplo, 1.500,00.", "err");
+    const data = {
+      date: $("sh-date").value, value, title: $("sh-title").value,
+      type: $("sh-type").value, notes: $("sh-notes").value, markBusy: $("sh-busy").checked,
+    };
+    const btn = $("sh-submit");
+    btn.disabled = true;
+    setStatus(status, "Salvando…");
+    try {
+      if (editingId) {
+        shows = (await api(`/api/admin/shows/${encodeURIComponent(editingId)}`, { method: "PUT", body: data })).shows;
+        stopEdit();
+        setStatus(status, "✓ Show atualizado!", "ok");
+      } else {
+        const res = await api("/api/admin/shows", { method: "POST", body: data });
+        shows = res.shows;
+        config = res.config;
+        if (!agendaDirty) { busy = new Set(config.busyDates); renderAgenda(); }
+        form.reset();
+        $("sh-busy").checked = true;
+        setStatus(status, data.markBusy ? "✓ Show registrado e data ocupada na agenda!" : "✓ Show registrado!", "ok");
+      }
+      const [y, m] = data.date.split("-").map(Number);
+      dashY = y; dashM = m - 1;
+      renderDashboard();
+    } catch (err) {
+      setStatus(status, err.message, "err");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ---------- Envio de vídeos (Vercel Blob ou pasta local) ----------
+  function setupUploads() {
+    const form = $("upload-form");
+    const none = uploadMode === "none";
+    form.querySelectorAll("input, button").forEach((el) => { el.disabled = none; });
+    if (none) setStatus(form.querySelector(".status"), "Envio de arquivos indisponível: conecte o Vercel Blob ao projeto. Links do YouTube funcionam.", "err");
+  }
+
+  async function uploadToBlob(file, type, title, onProgress) {
+    const { token, pathname } = await api("/api/admin/videos/blob-token", {
+      method: "POST", body: { contentType: type, size: file.size },
+    });
+    const { put } = await import("/assets/vendor/vercel-blob-client.js");
+    const blob = await put(pathname, file, {
+      access: "public", token, contentType: type,
+      multipart: file.size > 50 * 1024 * 1024,
+      onUploadProgress: ({ percentage }) => onProgress(Math.round(percentage)),
+    });
+    return api("/api/admin/videos/blob", { method: "POST", body: { url: blob.url, title } });
+  }
+
   // ---------- Início ----------
   fetch("/api/session", { credentials: "same-origin" })
     .then((r) => r.json())
-    .then((s) => (s.authed ? showAdmin() : showLogin()))
+    .then((s) => { uploadMode = s.uploads || "local"; return s.authed ? showAdmin() : showLogin(); })
     .catch(() => showLogin("Não foi possível falar com o servidor."));
 </script>
 </body>

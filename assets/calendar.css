@@ -1,35 +1,128 @@
-/* Calendário compartilhado entre o site e o admin */
-.cal { --cal-free: #25d366; --cal-busy: #8a3b34; user-select: none; }
-.cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-.cal-title { font-family: "Fraunces", Georgia, serif; font-size: 1.3rem; }
+/* Calendário em forma de braço de violão (site e admin) */
+.cal {
+  --row: 54px;
+  --head: 78px;
+  --nut: 10px;
+  --ball: min(40px, 82%);
+  user-select: none;
+}
+.cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.cal-title { font-family: "Fraunces", Georgia, serif; font-size: 1.4rem; }
 .cal-nav {
-  width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.4rem; line-height: 1;
+  width: 42px; height: 42px; border-radius: 50%; cursor: pointer; font-size: 1.4rem; line-height: 1;
   color: var(--text); background: transparent; border: 1px solid var(--line);
 }
 .cal-nav:hover:not(:disabled) { border-color: var(--gold); color: var(--gold-2); }
 .cal-nav:disabled { opacity: .3; cursor: default; }
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-.cal-week { margin-bottom: 6px; }
-.cal-week span { text-align: center; font-size: .75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+
+/* Dias da semana acima de cada casa */
+.neck-labels {
+  display: grid; grid-template-columns: repeat(7, 1fr) calc(var(--nut) + var(--head));
+  margin: 0 12px 6px 0; text-align: center;
+  font-size: .74rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em;
+}
+.neck-labels .tune-label { color: var(--gold); }
+
+.neck {
+  position: relative; display: grid; grid-template-columns: 1fr var(--nut) var(--head);
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, .55));
+  margin-right: 12px; /* espaço para as chaves das tarraxas */
+}
+
+/* Escala de madeira com os trastes (linhas metálicas entre as casas) */
+.neck-board {
+  position: relative; display: grid;
+  grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(6, var(--row));
+  border-radius: 8px 0 0 8px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 calc(100% / 7 - 3px), #8f877a calc(100% / 7 - 3px), #f2ece2 calc(100% / 7 - 1.5px), #8f877a calc(100% / 7)),
+    linear-gradient(180deg, rgba(255, 255, 255, .06), transparent 30%, transparent 70%, rgba(0, 0, 0, .35)),
+    repeating-linear-gradient(92deg, rgba(0, 0, 0, .12) 0 2px, transparent 2px 9px),
+    linear-gradient(90deg, #3a2316, #4a2d1c 40%, #3d2618);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .08), inset 0 -2px 0 rgba(0, 0, 0, .4);
+}
+/* Marcações de madrepérola nas casas 3, 5 e 7 (contando a partir da mão do violão) */
+.inlay {
+  position: absolute; top: 50%; left: calc((var(--col) - .5) / 7 * 100%);
+  width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fffaf0, #d8cfc0 60%, #a89f90);
+  opacity: .55;
+}
+.fret { display: grid; place-items: center; position: relative; }
+
+/* Pestana (osso) e mão do violão */
+.neck-nut { background: linear-gradient(90deg, #cfc3a8, #f4ecda 50%, #cfc3a8); box-shadow: inset 0 0 2px rgba(0, 0, 0, .4); }
+.neck-head {
+  position: relative; display: grid; grid-template-rows: repeat(6, 1fr);
+  border-radius: 0 30px 30px 0 / 0 50% 50% 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .07), transparent 40%, rgba(0, 0, 0, .3)), linear-gradient(90deg, #2c1a10, #3b2416);
+}
+.peg { position: relative; display: flex; align-items: center; gap: 8px; padding-left: 14px; }
+/* Pino onde a corda termina */
+.peg i {
+  width: 10px; height: 10px; border-radius: 50%; flex: none; position: relative; z-index: 2;
+  background: radial-gradient(circle at 35% 35%, #ffffff, #b9b3a8 55%, #6f695f);
+}
+.peg b { font-family: "Fraunces", Georgia, serif; font-size: .9rem; color: var(--gold-2); }
+/* Chave da tarraxa saindo pela lateral */
+.peg::after {
+  content: ""; position: absolute; right: -14px; top: 50%; width: 18px; height: 11px; margin-top: -5.5px;
+  border-radius: 5px 7px 7px 5px; background: linear-gradient(180deg, #f3eee6, #a8a195 60%, #7a746a);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .6);
+}
+
+/* Cordas: da 1ª (fina) à 6ª (grossa), passando por cima da escala até os pinos */
+.neck-strings { position: absolute; inset: 0 calc(var(--head) - 19px) 0 0; pointer-events: none; z-index: 1; }
+.neck-strings i {
+  position: absolute; left: 0; right: 0;
+  top: calc((var(--s) + .5) / 6 * 100%);
+  height: calc(1px + var(--s) * .45px); transform: translateY(-50%);
+  background: linear-gradient(180deg, #fbf7ef, #b8b0a2 60%, #7d766b);
+  box-shadow: 0 1px 1.5px rgba(0, 0, 0, .55);
+}
+.neck-strings i:nth-child(n + 4) { background: repeating-linear-gradient(90deg, #e9d7b3 0 1px, #a98e62 1px 2px); }
+
+/* Dias */
 .cal-day {
-  aspect-ratio: 1; border-radius: 10px; font: inherit; font-weight: 700; font-size: .95rem; cursor: pointer;
-  display: grid; place-items: center; border: 1px solid transparent; color: var(--text); background: transparent;
-  position: relative; transition: transform .1s ease;
+  position: relative; z-index: 2; width: var(--ball); aspect-ratio: 1; border-radius: 50%; border: 0; padding: 0;
+  display: grid; place-items: center; cursor: pointer;
+  font: 800 .95rem/1 "Manrope", system-ui, sans-serif; color: #fff;
+  transition: transform .12s ease, box-shadow .12s ease;
 }
-.cal-day:hover:not(:disabled) { transform: scale(1.06); }
-.cal-day.is-free { background: rgba(37, 211, 102, .12); border-color: rgba(37, 211, 102, .35); }
+.cal-day:hover:not(:disabled) { transform: scale(1.1); }
+.cal-day:focus-visible { outline: 3px solid var(--gold-2); outline-offset: 2px; }
+/* Disponível: bola verde */
+.cal-day.is-free {
+  background: radial-gradient(circle at 34% 28%, #7cf5a6, #22c45e 45%, #0f7a37);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .45);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, .5), inset 0 -2px 3px rgba(0, 0, 0, .25);
+}
+/* Ocupado: bola preta com número branco */
 .cal-day.is-busy {
-  background: rgba(138, 59, 52, .22); border-color: rgba(200, 90, 80, .35); color: #d9a29b;
-  text-decoration: line-through; text-decoration-thickness: 1.5px;
+  background: radial-gradient(circle at 34% 28%, #4a4a4a, #111 50%, #000);
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .22), 0 3px 6px rgba(0, 0, 0, .6);
 }
-.cal-day.is-past { color: #5c5248; cursor: default; }
+.cal-day.is-past { background: transparent; color: rgba(255, 255, 255, .3); font-weight: 600; font-size: .82rem; cursor: default; }
 .cal-day.is-today::after {
-  content: ""; position: absolute; bottom: 5px; width: 5px; height: 5px; border-radius: 50%; background: var(--gold);
+  content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 2px dashed var(--gold); pointer-events: none;
 }
-.cal-day.is-selected { outline: 2px solid var(--gold); outline-offset: 1px; }
-.cal-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; color: var(--muted); font-size: .88rem; }
+.cal-day.is-selected { transform: scale(1.12); box-shadow: 0 0 0 3px var(--gold-2), 0 0 18px rgba(240, 201, 138, .6); }
+
+/* Legenda */
+.cal-legend { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 20px; color: var(--muted); font-size: .88rem; }
 .cal-legend span { display: inline-flex; align-items: center; gap: 8px; }
-.cal-legend i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
-.cal-legend .lg-free { background: rgba(37, 211, 102, .25); border: 1px solid rgba(37, 211, 102, .5); }
-.cal-legend .lg-busy { background: rgba(138, 59, 52, .4); border: 1px solid rgba(200, 90, 80, .5); }
-@media (max-width: 420px) { .cal-grid { gap: 4px; } .cal-day { font-size: .85rem; border-radius: 8px; } }
+.cal-legend i { width: 16px; height: 16px; border-radius: 50%; display: inline-block; }
+.cal-legend .lg-free { background: radial-gradient(circle at 34% 28%, #7cf5a6, #22c45e 45%, #0f7a37); }
+.cal-legend .lg-busy { background: radial-gradient(circle at 34% 28%, #4a4a4a, #111 50%, #000); box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .25); }
+.cal-legend .lg-today { border: 2px dashed var(--gold); }
+
+@media (max-width: 640px) {
+  .cal { --row: 46px; --head: 56px; --nut: 7px; --ball: min(34px, 86%); }
+  .cal-day { font-size: .82rem; }
+  .peg { padding-left: 10px; gap: 5px; }
+  .peg b { font-size: .75rem; }
+  .neck-strings { right: calc(var(--head) - 15px); }
+  .neck-labels { font-size: .66rem; letter-spacing: 0; }
+  .neck-labels .tune-label { font-size: .58rem; }
+  .inlay { width: 10px; height: 10px; margin: -5px 0 0 -5px; }
+}

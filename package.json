@@ -3,11 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "description": "Site de agendamentos do cantor Letieri Silveira, com painel admin.",
-  "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build:blob-client": "esbuild assets/vendor/blob-client-entry.js --bundle --format=esm --platform=browser --minify --target=es2020 --legal-comments=none --outfile=assets/vendor/vercel-blob-client.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@vercel/blob": "2.8.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.0"
   }
 }

@@ -1,39 +1,51 @@
 # Letieri Silveira · Músico e Cantor
 
-Site de agendamentos com painel admin. Feito em Node.js puro, sem dependências para instalar.
+Site de agendamentos com painel admin.
 
-- **Site:** `/`: repertório, tipos de evento, calendário de datas disponíveis, vídeos e formulário que envia o agendamento pronto para o WhatsApp `wa.me/5548996967255`.
-- **Admin:** `/admin`: o artista altera o slogan, marca as datas reservadas na agenda, liga e desliga a faixa de promoção no topo e envia vídeos (arquivo ou link do YouTube).
+- **Site** (`/`): repertório, tipos de evento, **agenda em forma de braço de violão** (bola verde = livre, bola preta = ocupado),
+  vídeos e formulário que envia o agendamento pronto para o WhatsApp `wa.me/5548996967255`.
+- **Admin** (`/admin`):
+  - **Dashboard:** shows do mês, faturamento fechado, ticket médio e comparativo com o mês anterior.
+  - **Slogan:** a frase do topo do site.
+  - **Agenda:** marca e libera as datas ocupadas.
+  - **Promoção:** faixa no topo da página.
+  - **Vídeos:** envio de arquivo ou link do YouTube.
 
-## Rodar
+## Publicar na Vercel
+
+1. Em [vercel.com/new](https://vercel.com/new), importe este repositório do GitHub. Não precisa mudar nada nas configurações de build.
+2. Em **Settings → Environment Variables**, crie `ADMIN_PASSWORD` com a senha do painel.
+3. Em **Storage**:
+   - **Upstash Redis** (Marketplace): conecte ao projeto. Guarda o slogan, a agenda, a promoção e os shows.
+     As variáveis `KV_REST_API_URL` e `KV_REST_API_TOKEN` são criadas automaticamente.
+   - **Blob**: crie um store e conecte ao projeto. Guarda os vídeos enviados.
+     A variável `BLOB_READ_WRITE_TOKEN` é criada automaticamente.
+4. Faça um novo deploy (**Deployments → Redeploy**) para as variáveis valerem.
+
+Sem o Redis o site abre normalmente com o conteúdo padrão, mas o admin não consegue salvar.
+Sem o Blob, o admin aceita apenas vídeos do YouTube.
+
+## Rodar no computador
 
 ```bash
-cp .env.example .env      # e defina ADMIN_PASSWORD no .env
-npm start                 # http://localhost:3000  ·  admin em http://localhost:3000/admin
+cp .env.example .env      # e defina ADMIN_PASSWORD
+npm start                 # http://localhost:3000  ·  admin em /admin
 ```
 
-Requer Node.js 18 ou mais novo.
+Sem as variáveis da Vercel, os dados ficam em `./data` e os vídeos em `./data/uploads`.
+O mesmo comando serve para hospedar em servidor próprio (VPS, Render, Railway), desde que `DATA_DIR` aponte para um disco persistente.
 
-## Hospedagem
-
-O admin salva dados no servidor, por isso o site **não funciona no GitHub Pages** (que só serve arquivos estáticos).
-Use qualquer hospedagem que rode Node.js (Render, Railway, Fly.io, uma VPS…):
-
-1. Comando de início: `npm start`.
-2. Variáveis de ambiente: `ADMIN_PASSWORD` (obrigatória), `TRUST_PROXY=1` (em hospedagens com proxy) e, se quiser, `MAX_VIDEO_MB`.
-3. **Disco persistente:** a configuração e os vídeos ficam em `DATA_DIR` (padrão `./data`). Aponte `DATA_DIR` para um disco
-   persistente da hospedagem, senão as alterações e os vídeos somem a cada novo deploy.
-4. Use HTTPS (as hospedagens acima já oferecem). O login usa cookie seguro quando o acesso é por HTTPS.
-
-## Arquivos
+## Estrutura
 
 | Arquivo | O que é |
 | --- | --- |
-| `index.html` | Site público |
-| `admin.html` | Painel admin |
-| `assets/calendar.js`, `assets/calendar.css` | Calendário usado no site e no admin |
-| `server.js` | Servidor: páginas, API do admin, login e envio de vídeos |
+| `index.html` / `admin.html` | Site público / painel admin |
+| `assets/calendar.js`, `assets/calendar.css` | Calendário em forma de braço de violão |
+| `assets/vendor/vercel-blob-client.js` | Envio de vídeos para o Vercel Blob (gerado com `npm run build:blob-client`) |
+| `lib/app.js` | API: login, slogan, agenda, promoção, shows e vídeos |
+| `lib/storage.js` | Banco de dados: Upstash Redis (Vercel) ou arquivos locais |
+| `api/handler.js` + `vercel.json` | Função da Vercel que atende `/api/*` |
+| `server.js` | Servidor para rodar localmente ou em servidor próprio |
 | `config.default.json` | Conteúdo inicial (slogan padrão etc.) |
-| `data/` | Criada automaticamente: `config.json` e `uploads/` (fora do git) |
 
 Para trocar o número do WhatsApp, edite a constante `WHATSAPP` no final de `index.html`.
