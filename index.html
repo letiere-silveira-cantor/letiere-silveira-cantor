@@ -104,6 +104,22 @@
   .hero h1 .hl { color: var(--gold); font-style: italic; }
   .hero .role { font-size: 1.15rem; color: var(--muted); margin: 0 0 22px; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; }
+  /* Faixa de estilos deslizando da direita para a esquerda, em loop */
+  .chips.marquee {
+    display: block; overflow: hidden; padding: 2px 0;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  .marquee-track { display: flex; width: max-content; animation: marquee var(--dur, 20s) linear infinite; }
+  .marquee-group { display: flex; flex: none; gap: 8px; padding-right: 8px; }
+  .chips.marquee:hover .marquee-track { animation-play-state: paused; }
+  @keyframes marquee { to { transform: translateX(calc(-1 * var(--shift, 50%))); } }
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track { animation: none; width: auto; }
+    .marquee-group { flex-wrap: wrap; }
+    .marquee-group[aria-hidden] { display: none; }
+    .chips.marquee { -webkit-mask-image: none; mask-image: none; }
+  }
   .chip {
     border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px;
     font-size: .85rem; font-weight: 700; letter-spacing: .06em; color: var(--gold-2);
@@ -507,8 +523,10 @@
         <p class="eyebrow">Letieri Silveira · Músico &amp; Cantor</p>
         <h1 id="slogan"><span id="slogan-text">Seu grande momento merece</span> <span class="hl" id="slogan-hl">trilha sonora ao vivo.</span></h1>
         <p class="role" id="slogan-sub">Voz, violão e emoção para o seu evento em Florianópolis e região.</p>
-        <div class="chips" id="genre-chips" aria-label="Estilos musicais">
-          <span class="chip">SERTANEJO</span><span class="chip">MPB</span><span class="chip">REGGAE</span><span class="chip">ROCK</span>
+        <div class="chips marquee" id="genre-chips" aria-label="Estilos musicais">
+          <div class="marquee-track">
+            <div class="marquee-group" id="genre-chip-group"><span class="chip">SERTANEJO</span><span class="chip">MPB</span><span class="chip">REGGAE</span><span class="chip">ROCK</span></div>
+          </div>
         </div>
         <div class="rating"><span class="stars" aria-hidden="true">★★★★★</span> Cantor bem avaliado · Coco Bambu e Don Pierro</div>
         <div class="reviews" id="reviews" aria-label="Avaliações de clientes" hidden></div>
@@ -976,6 +994,29 @@
 
   document.getElementById("year").textContent = new Date().getFullYear();
 
+  // Repete as etiquetas o suficiente para a faixa nunca ficar vazia e desliza uma cópia por volta.
+  function setupMarquee() {
+    const box = document.getElementById("genre-chips");
+    const track = box.querySelector(".marquee-track");
+    const group = document.getElementById("genre-chip-group");
+    track.querySelectorAll(".marquee-group[aria-hidden]").forEach((n) => n.remove());
+    const width = group.getBoundingClientRect().width;
+    if (!width) return;
+    const copies = Math.ceil(box.clientWidth / width) + 1;
+    for (let i = 0; i < copies; i++) {
+      const clone = group.cloneNode(true);
+      clone.removeAttribute("id");
+      clone.setAttribute("aria-hidden", "true");
+      track.append(clone);
+    }
+    track.style.setProperty("--shift", `${width}px`);
+    track.style.setProperty("--dur", `${Math.max(8, width / 35)}s`); // ~35px por segundo
+  }
+  setupMarquee();
+  document.fonts?.ready.then(setupMarquee);
+  let marqueeTimer;
+  window.addEventListener("resize", () => { clearTimeout(marqueeTimer); marqueeTimer = setTimeout(setupMarquee, 200); });
+
   // ---------- Conteúdo editável pelo admin ----------
   const busyDates = new Set();
   let selectedDate = null;
@@ -1061,7 +1102,7 @@
 
   function applyGenres(genres) {
     if (!genres || !genres.length) return;
-    const chips = document.getElementById("genre-chips");
+    const chips = document.getElementById("genre-chip-group");
     const grid = document.getElementById("genres-grid");
     const checks = document.getElementById("genre-checks");
     chips.replaceChildren();
@@ -1167,6 +1208,7 @@
       applyVideos(cfg.videos);
       applyReviews(cfg.reviews);
       applyGenres(cfg.genres);
+      setupMarquee();
       (cfg.busyDates || []).forEach((d) => busyDates.add(d));
       calendar.render();
       checkDate();
