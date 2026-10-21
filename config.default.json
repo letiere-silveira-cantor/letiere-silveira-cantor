@@ -33,6 +33,12 @@
       "text": "Rock nacional e internacional em versões acústicas que levantam qualquer público."
     }
   ],
+  "about": {
+    "active": false,
+    "title": "A história do Letieri",
+    "text": "",
+    "photoVersion": ""
+  },
   "reviews": [],
   "busyDates": [],
   "videos": []

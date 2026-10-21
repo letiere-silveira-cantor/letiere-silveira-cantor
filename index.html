@@ -410,6 +410,25 @@
   }
   .offer-close:hover { color: var(--text); background: rgba(255, 255, 255, .06); }
 
+  /* História do Letieri (ativada no admin) */
+  #historia { background: var(--bg-2); border-top: 1px solid var(--line); }
+  #historia[hidden] { display: none; }
+  .story { max-width: 760px; margin: 0 auto; text-align: center; }
+  .story-photo {
+    position: relative; margin: 0 auto 34px; max-width: 760px; border-radius: 22px; overflow: hidden;
+    border: 1px solid rgba(217, 169, 91, .45); box-shadow: 0 24px 60px rgba(0, 0, 0, .5);
+  }
+  .story-photo[hidden] { display: none; }
+  .story-photo img { width: 100%; height: auto; max-height: 520px; object-fit: cover; }
+  .story-photo::after { content: ""; position: absolute; inset: 8px; border: 1px solid rgba(240, 201, 138, .35); border-radius: 16px; pointer-events: none; }
+  .story-text { text-align: left; color: var(--muted); font-size: 1.05rem; line-height: 1.8; }
+  .story-text p { margin: 0 0 1.1em; display: flow-root; }
+  .story-text p:first-child::first-letter {
+    float: left; font-family: "Fraunces", Georgia, serif; font-size: 3.4em; line-height: .9;
+    margin: 6px 10px 0 0; color: var(--gold);
+  }
+  .story-sign { margin-top: 10px; font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: 1.3rem; color: var(--gold-2); text-align: right; }
+
   /* Agenda (calendário público) */
   #agenda { background: radial-gradient(900px 420px at 50% 60%, rgba(217, 169, 91, .08), transparent 70%); }
   .agenda-card {
@@ -756,6 +775,17 @@
         <div><strong>Repertório versátil</strong><span>Sertanejo, MPB, Reggae e Rock no mesmo show.</span></div>
         <div><strong>Atendimento direto</strong><span>Você fala com o próprio artista pelo WhatsApp.</span></div>
       </div>
+    </div>
+  </section>
+
+  <!-- História (ativada e editada no admin) -->
+  <section id="historia" hidden>
+    <div class="wrap story">
+      <figure class="story-photo" id="story-photo" hidden><img id="story-img" alt="Letieri Silveira" loading="lazy"></figure>
+      <p class="eyebrow">Minha história</p>
+      <h2 id="story-title">A história do Letieri</h2>
+      <div class="story-text" id="story-text"></div>
+      <p class="story-sign">— Letieri Silveira</p>
     </div>
   </section>
 
@@ -1143,6 +1173,24 @@
       n === 1 ? "Um estilo, um show sob medida" : `${NUMBERS[n] || n} estilos, um show sob medida`;
   }
 
+  function applyAbout(about) {
+    const section = document.getElementById("historia");
+    if (!about || !about.text) { section.hidden = true; return; }
+    document.getElementById("story-title").textContent = about.title;
+    const box = document.getElementById("story-text");
+    box.replaceChildren();
+    // Cada linha em branco no admin vira um novo parágrafo.
+    for (const para of about.text.split(/\n\s*\n/)) {
+      const p = document.createElement("p");
+      para.split("\n").forEach((line, i) => { if (i) p.append(document.createElement("br")); p.append(line); });
+      box.append(p);
+    }
+    const fig = document.getElementById("story-photo");
+    if (about.photo) document.getElementById("story-img").src = about.photo;
+    fig.hidden = !about.photo;
+    section.hidden = false;
+  }
+
   function applyReviews(reviews) {
     const box = document.getElementById("reviews");
     box.replaceChildren();
@@ -1208,6 +1256,7 @@
       applyVideos(cfg.videos);
       applyReviews(cfg.reviews);
       applyGenres(cfg.genres);
+      applyAbout(cfg.about);
       setupMarquee();
       (cfg.busyDates || []).forEach((d) => busyDates.add(d));
       calendar.render();

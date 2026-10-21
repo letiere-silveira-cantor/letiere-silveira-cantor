@@ -230,6 +230,17 @@
   .check { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: .9rem; margin-bottom: 16px; cursor: pointer; }
   .check input { accent-color: var(--gold); width: 18px; height: 18px; }
 
+  /* História */
+  .about-photo-box {
+    display: grid; place-items: center; min-height: 200px; margin-bottom: 14px; border-radius: 16px; overflow: hidden;
+    border: 1px dashed var(--line); background: var(--bg); color: var(--muted); text-align: center; padding: 0;
+  }
+  .about-photo-box img { width: 100%; max-height: 380px; object-fit: cover; display: block; }
+  .photo-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 22px; }
+  .file-btn { position: relative; overflow: hidden; }
+  .file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  #about-text { min-height: 260px; line-height: 1.6; }
+
   /* Estilos musicais */
   .genre-list { display: grid; gap: 10px; margin-bottom: 14px; }
   .genre-row {
@@ -344,6 +355,7 @@
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-agenda" id="t-agenda" tabindex="-1">📅 Agenda</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-promo" id="t-promo" tabindex="-1">🎁 Oferta especial</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-genres" id="t-genres" tabindex="-1">🎵 Estilos</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-about" id="t-about" tabindex="-1">📖 História</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-reviews" id="t-reviews" tabindex="-1">⭐ Avaliações</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-videos" id="t-videos" tabindex="-1">🎬 Vídeos</button>
   </nav>
@@ -549,6 +561,36 @@
       </div>
     </section>
 
+    <!-- História -->
+    <section class="panel" role="tabpanel" id="p-about" aria-labelledby="t-about" hidden>
+      <h2>A história do Letieri</h2>
+      <p class="hint">Seção do site logo depois de “Onde toca”, com a foto em cima e a biografia embaixo.</p>
+      <form id="about-form">
+        <label class="switch"><input type="checkbox" id="about-active"> Exibir a história no site</label>
+
+        <h3>Foto</h3>
+        <div class="about-photo-box" id="about-photo-box">Nenhuma foto escolhida</div>
+        <div class="photo-actions">
+          <label class="btn btn-ghost file-btn">📷 Escolher foto<input type="file" id="about-file" accept="image/*"></label>
+          <button class="btn btn-danger" type="button" id="about-photo-remove" hidden>Remover foto</button>
+          <span class="status" id="about-photo-status" role="status"></span>
+        </div>
+
+        <div class="field">
+          <label for="about-title">Título</label>
+          <input type="text" id="about-title" maxlength="80" placeholder="A história do Letieri">
+        </div>
+        <div class="field">
+          <label for="about-text">Biografia <small id="about-count">0/4000 · deixe uma linha em branco para começar um novo parágrafo</small></label>
+          <textarea id="about-text" maxlength="4000" placeholder="Conte como a música entrou na sua vida, onde começou a tocar, os momentos marcantes…"></textarea>
+        </div>
+        <div class="save-row">
+          <button class="btn btn-gold" type="submit">Salvar história</button>
+          <span class="status" role="status"></span>
+        </div>
+      </form>
+    </section>
+
     <!-- Estilos musicais -->
     <section class="panel" role="tabpanel" id="p-genres" aria-labelledby="t-genres" hidden>
       <h2>Estilos musicais</h2>
@@ -730,6 +772,7 @@
     fillPromo();
     fillReviews(config.reviews || []);
     genres = (config.genres || []).map((g) => ({ ...g }));
+    fillAbout((await api("/api/admin/about-data")).about);
     renderGenres();
     const agenda = await api("/api/admin/agenda");
     busy = new Set(agenda.busyDates);
@@ -819,6 +862,93 @@
   $("slogan-form").addEventListener("submit", (e) => {
     e.preventDefault();
     saveSettings(e.target, { slogan: { text: $("s-text").value, highlight: $("s-hl").value, subtitle: $("s-sub").value } });
+  });
+
+  // ---------- História ----------
+  function showAboutPhoto(src) {
+    const box = $("about-photo-box");
+    box.replaceChildren();
+    if (src) {
+      const img = document.createElement("img");
+      img.src = src;
+      img.alt = "Foto da história";
+      box.append(img);
+    } else {
+      box.textContent = "Nenhuma foto escolhida";
+    }
+    $("about-photo-remove").hidden = !src;
+  }
+
+  function fillAbout(about) {
+    $("about-active").checked = Boolean(about.active);
+    $("about-title").value = about.title || "";
+    $("about-text").value = about.text || "";
+    $("about-count").firstChild.textContent = `${$("about-text").value.length}/4000 · deixe uma linha em branco para começar um novo parágrafo`;
+    showAboutPhoto(about.photoVersion ? `/api/about-photo?v=${about.photoVersion}` : "");
+  }
+  $("about-text").addEventListener("input", () => {
+    $("about-count").firstChild.textContent = `${$("about-text").value.length}/4000 · deixe uma linha em branco para começar um novo parágrafo`;
+  });
+
+  // Reduz a foto no próprio aparelho (máx. 1600px) antes de enviar.
+  async function shrinkImage(file) {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    for (const q of [0.85, 0.75, 0.65, 0.5]) {
+      const url = canvas.toDataURL("image/jpeg", q);
+      if (url.length < 1_400_000) return url;
+    }
+    throw new Error("Não foi possível reduzir a foto. Tente outra imagem.");
+  }
+
+  $("about-file").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    const status = $("about-photo-status");
+    setStatus(status, "Enviando foto…");
+    try {
+      const dataUrl = await shrinkImage(file);
+      const res = await api("/api/admin/about/photo", { method: "PUT", body: { dataUrl } });
+      fillAbout({ ...res.aboutAdmin, title: $("about-title").value, text: $("about-text").value, active: $("about-active").checked });
+      setStatus(status, "✓ Foto salva!", "ok");
+    } catch (err) {
+      setStatus(status, err.message || "Não foi possível enviar a foto.", "err");
+    }
+  });
+
+  $("about-photo-remove").addEventListener("click", async () => {
+    if (!confirm("Remover a foto da história?")) return;
+    try {
+      await api("/api/admin/about/photo", { method: "DELETE" });
+      showAboutPhoto("");
+      setStatus($("about-photo-status"), "✓ Foto removida.", "ok");
+    } catch (err) { setStatus($("about-photo-status"), err.message, "err"); }
+  });
+
+  $("about-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const status = form.querySelector(".save-row .status");
+    const btn = form.querySelector('[type="submit"]');
+    btn.disabled = true;
+    setStatus(status, "Salvando…");
+    try {
+      const res = await api("/api/admin/about", {
+        method: "PUT",
+        body: { active: $("about-active").checked, title: $("about-title").value, text: $("about-text").value },
+      });
+      config = res;
+      setStatus(status, res.aboutAdmin.active ? "✓ Salvo! A história está no site." : "✓ Salvo! A seção está desativada no site.", "ok");
+    } catch (err) {
+      setStatus(status, err.message, "err");
+    } finally {
+      btn.disabled = false;
+    }
   });
 
   // ---------- Estilos musicais ----------
