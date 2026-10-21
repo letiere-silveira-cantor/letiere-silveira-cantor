@@ -98,6 +98,7 @@
       radial-gradient(600px 400px at 10% 55%, rgba(217, 169, 91, .07), transparent 60%);
   }
   .hero-grid { display: grid; grid-template-columns: 1.15fr .85fr; align-items: center; gap: 48px; }
+  .hero-grid > * { min-width: 0; }
   .hero h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); margin-bottom: 16px; letter-spacing: -.01em; }
   .hero h1 .hl { color: var(--gold); font-style: italic; }
   .hero .role { font-size: 1.15rem; color: var(--muted); margin: 0 0 22px; }
@@ -110,6 +111,30 @@
   .rating { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-bottom: 28px; color: var(--muted); font-weight: 600; }
   .stars { color: var(--gold); letter-spacing: 2px; font-size: 1.1rem; }
   .cta-row { display: flex; flex-wrap: wrap; gap: 12px; }
+
+  /* Avaliações de clientes (editadas no admin) */
+  .reviews { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: -8px 0 28px; }
+  .reviews[hidden] { display: none; }
+  .review {
+    margin: 0; text-align: left; padding: 14px 16px; border-radius: 14px;
+    background: rgba(29, 24, 20, .85); border: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .review .stars { font-size: .9rem; }
+  .review blockquote {
+    margin: 0; font-size: .9rem; line-height: 1.5; color: var(--text);
+    display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .review figcaption { margin-top: auto; font-size: .82rem; font-weight: 700; color: var(--gold-2); }
+  .review figcaption span { display: block; font-weight: 500; color: var(--muted); }
+  @media (max-width: 880px) {
+    .reviews {
+      display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px;
+      margin: -8px -20px 26px; padding: 2px 20px 6px; scrollbar-width: none;
+    }
+    .reviews::-webkit-scrollbar { display: none; }
+    .review { flex: 0 0 min(82%, 300px); scroll-snap-align: center; }
+  }
   .hero-media { justify-self: center; width: min(100%, 420px); display: flex; flex-direction: column; align-items: center; gap: 40px; }
   .portrait { position: relative; width: 100%; }
   .portrait::before {
@@ -446,6 +471,7 @@
           <span class="chip">SERTANEJO</span><span class="chip">MPB</span><span class="chip">REGGAE</span><span class="chip">ROCK</span>
         </div>
         <div class="rating"><span class="stars" aria-hidden="true">★★★★★</span> Cantor bem avaliado · Coco Bambu e Don Pierro</div>
+        <div class="reviews" id="reviews" aria-label="Avaliações de clientes" hidden></div>
         <div class="cta-row">
           <a class="btn btn-wa" data-wa="agendar" href="#"><svg><use href="#i-wa"/></svg>Agendar pelo WhatsApp</a>
           <a class="btn btn-ghost" href="#eventos"><svg class="ic"><use href="#i-pick-plain"/></svg>Ver tipos de evento</a>
@@ -954,6 +980,31 @@
     });
   }
 
+  function applyReviews(reviews) {
+    const box = document.getElementById("reviews");
+    box.replaceChildren();
+    for (const rv of reviews || []) {
+      const fig = document.createElement("figure");
+      fig.className = "review";
+      const stars = document.createElement("span");
+      stars.className = "stars";
+      stars.textContent = "★".repeat(rv.stars) + "☆".repeat(5 - rv.stars);
+      stars.setAttribute("aria-label", `${rv.stars} de 5 estrelas`);
+      const quote = document.createElement("blockquote");
+      quote.textContent = `“${rv.text}”`;
+      const cap = document.createElement("figcaption");
+      cap.textContent = rv.name;
+      if (rv.context) {
+        const ctx = document.createElement("span");
+        ctx.textContent = rv.context;
+        cap.append(ctx);
+      }
+      fig.append(stars, quote, cap);
+      box.append(fig);
+    }
+    box.hidden = !box.children.length;
+  }
+
   function applyVideos(videos) {
     const grid = document.getElementById("videos-grid");
     grid.replaceChildren();
@@ -992,6 +1043,7 @@
       applySlogan(cfg.slogan);
       applyPromo(cfg.promo);
       applyVideos(cfg.videos);
+      applyReviews(cfg.reviews);
       (cfg.busyDates || []).forEach((d) => busyDates.add(d));
       calendar.render();
       checkDate();
