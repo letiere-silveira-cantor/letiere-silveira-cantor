@@ -425,19 +425,19 @@
     <!-- Agenda -->
     <section class="panel" role="tabpanel" id="p-agenda" aria-labelledby="t-agenda" hidden>
       <h2>Agenda disponível</h2>
-      <p class="hint">Toque em uma data para marcar como <b>ocupada</b> (bola preta). Toque de novo para liberar (bola verde). Depois clique em <b>Salvar agenda</b>.</p>
+      <p class="hint">Todas as datas começam <b>abertas</b> (bola verde). <b>1 toque</b> marca como <b>reservada</b> (bola preta). <b>2º toque</b> volta a ficar aberta. Cada toque já é salvo e aparece no site na hora.</p>
       <div class="cols agenda-cols">
         <div class="cal-wrap">
           <div id="admin-cal"></div>
-          <div class="cal-legend"><span><i class="lg-free"></i>Disponível</span><span><i class="lg-busy"></i>Ocupado</span><span><i class="lg-today"></i>Hoje</span></div>
+          <div class="cal-legend"><span><i class="lg-free"></i>Aberta</span><span><i class="lg-busy"></i>Reservada</span><span><i class="lg-today"></i>Hoje</span></div>
+          <div class="save-row">
+            <span class="status" id="agenda-status" role="status"></span>
+            <button class="btn btn-gold" id="save-agenda" type="button" hidden>Tentar salvar de novo</button>
+          </div>
         </div>
         <div>
-          <h3>Datas ocupadas</h3>
+          <h3>Datas reservadas</h3>
           <ul class="busy-list" id="busy-list"></ul>
-          <div class="save-row">
-            <button class="btn btn-gold" id="save-agenda" type="button">Salvar agenda</button>
-            <span class="status" id="agenda-status" role="status"></span>
-          </div>
         </div>
       </div>
     </section>
@@ -692,12 +692,11 @@
   // ---------- Agenda ----------
   const adminCal = MiniCalendar.create($("admin-cal"), {
     isBusy: (k) => busy.has(k),
-    labels: { free: "disponível, toque para ocupar", busy: "ocupado, toque para liberar" },
+    labels: { free: "aberta, toque para reservar", busy: "reservada, toque para abrir" },
     onSelect: (k) => {
       busy.has(k) ? busy.delete(k) : busy.add(k);
-      agendaDirty = true;
-      setStatus($("agenda-status"), "Alterações não salvas.");
       renderBusyList();
+      scheduleAgendaSave();
     },
   });
 
@@ -710,7 +709,7 @@
       const li = document.createElement("li");
       li.className = "empty";
       li.style.cssText = "background:none;border:0;padding:0";
-      li.textContent = "Nenhuma data ocupada. Todas as datas aparecem como disponíveis.";
+      li.textContent = "Nenhuma data reservada. Todas as datas estão abertas.";
       list.append(li);
       return;
     }
@@ -720,12 +719,11 @@
       const rm = document.createElement("button");
       rm.type = "button";
       rm.textContent = "×";
-      rm.setAttribute("aria-label", "Liberar " + MiniCalendar.formatKey(k));
+      rm.setAttribute("aria-label", "Abrir " + MiniCalendar.formatKey(k));
       rm.addEventListener("click", () => {
         busy.delete(k);
-        agendaDirty = true;
-        setStatus($("agenda-status"), "Alterações não salvas.");
         renderAgenda();
+        scheduleAgendaSave();
       });
       li.append(rm);
       list.append(li);
@@ -733,20 +731,39 @@
   }
   function renderAgenda() { adminCal.render(); renderBusyList(); }
 
-  $("save-agenda").addEventListener("click", async (e) => {
-    const btn = e.currentTarget;
-    btn.disabled = true;
+  // Salva sozinho a cada toque. Toques seguidos são agrupados e nunca há dois envios ao mesmo tempo.
+  let agendaTimer = null;
+  let agendaSaving = false;
+
+  function scheduleAgendaSave() {
+    agendaDirty = true;
+    $("save-agenda").hidden = true;
     setStatus($("agenda-status"), "Salvando…");
+    clearTimeout(agendaTimer);
+    agendaTimer = setTimeout(saveAgenda, 400);
+  }
+
+  async function saveAgenda() {
+    if (agendaSaving) return;
+    agendaSaving = true;
+    const sent = [...busy].sort().join();
     try {
       config = await api("/api/admin/availability", { method: "PUT", body: { busyDates: [...busy] } });
-      agendaDirty = false;
-      setStatus($("agenda-status"), "✓ Agenda salva! Já está no site.", "ok");
+      if ([...busy].sort().join() === sent) {
+        agendaDirty = false;
+        setStatus($("agenda-status"), "✓ Salvo! Já está no site.", "ok");
+      }
     } catch (err) {
-      setStatus($("agenda-status"), err.message, "err");
+      setStatus($("agenda-status"), `Não foi salvo: ${err.message}`, "err");
+      $("save-agenda").hidden = false;
     } finally {
-      btn.disabled = false;
+      agendaSaving = false;
     }
-  });
+    // Se ele tocou em outras datas enquanto salvava, salva de novo.
+    if (agendaDirty && $("save-agenda").hidden) saveAgenda();
+  }
+
+  $("save-agenda").addEventListener("click", () => { $("save-agenda").hidden = true; setStatus($("agenda-status"), "Salvando…"); saveAgenda(); });
 
   window.addEventListener("beforeunload", (e) => { if (agendaDirty) e.preventDefault(); });
 
