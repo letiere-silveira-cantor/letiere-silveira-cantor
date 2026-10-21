@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel Admin · Letieri Silveira</title>
+<link rel="icon" href="assets/favicon.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/calendar.css">
+<style>
+  :root {
+    --bg: #0f0d0b;
+    --bg-2: #171310;
+    --card: #1d1814;
+    --line: #3a3027;
+    --text: #f3ece3;
+    --muted: #b8aa99;
+    --gold: #d9a95b;
+    --gold-2: #f0c98a;
+    --wa: #25d366;
+    --danger: #e0786c;
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--bg); color: var(--text);
+    font: 16px/1.6 "Manrope", system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { font-family: "Fraunces", Georgia, serif; line-height: 1.2; margin: 0 0 .4em; }
+  a { color: var(--gold-2); }
+  [hidden] { display: none !important; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+    padding: 12px 20px; border-radius: 999px; font: inherit; font-weight: 700; font-size: .95rem;
+    border: 1px solid transparent; text-decoration: none; transition: background .15s ease, border-color .15s ease;
+  }
+  .btn:disabled { opacity: .55; cursor: wait; }
+  .btn-gold { background: var(--gold); color: #1b1207; }
+  .btn-gold:hover:not(:disabled) { background: var(--gold-2); }
+  .btn-ghost { background: transparent; color: var(--text); border-color: var(--line); }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--gold-2); }
+  .btn-danger { background: transparent; color: var(--danger); border-color: rgba(224, 120, 108, .4); padding: 8px 14px; font-size: .85rem; }
+  .btn-danger:hover { background: rgba(224, 120, 108, .1); }
+
+  label { display: block; font-weight: 700; font-size: .88rem; margin-bottom: 6px; }
+  label small { color: var(--muted); font-weight: 500; }
+  input[type="text"], input[type="password"], input[type="url"], input[type="file"], textarea {
+    font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line);
+    border-radius: 12px; padding: 12px 14px; width: 100%;
+  }
+  input:focus, textarea:focus { outline: 2px solid var(--gold); outline-offset: 1px; border-color: transparent; }
+  .field { margin-bottom: 16px; }
+  .hint { color: var(--muted); font-size: .88rem; margin: 0 0 18px; }
+
+  /* Logotipo */
+  .logo { display: inline-flex; flex-direction: column; gap: 3px; line-height: 1; text-decoration: none; }
+  .logo-name { font-family: "Fraunces", serif; font-weight: 700; font-size: 1.02rem; letter-spacing: .16em; white-space: nowrap; color: var(--text); }
+  .logo-name b { color: var(--gold); }
+  .logo-neck { display: block; width: 0; min-width: 100%; height: auto; aspect-ratio: 300 / 40; color: var(--gold); }
+
+  /* Login */
+  .login { min-height: 100vh; display: grid; place-items: center; padding: 20px; }
+  .login-card {
+    width: min(100%, 400px); background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 34px 28px; text-align: center;
+  }
+  .login-card .logo { margin-bottom: 26px; }
+  .login-card .logo-name { font-size: 1.4rem; }
+  .login-card form { text-align: left; }
+  .login-card .btn { width: 100%; margin-top: 6px; }
+  .error { color: var(--danger); font-size: .9rem; min-height: 1.4em; margin: 10px 0 0; }
+
+  /* Painel */
+  header {
+    position: sticky; top: 0; z-index: 10; background: rgba(15, 13, 11, .9); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar { max-width: 1100px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .bar .actions { display: flex; gap: 8px; }
+  .bar .btn { padding: 9px 16px; font-size: .88rem; }
+  .badge { font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); margin-left: 10px; vertical-align: middle; }
+
+  .tabs { max-width: 1100px; margin: 26px auto 0; padding: 0 20px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .tab {
+    font: inherit; font-weight: 700; cursor: pointer; color: var(--muted); background: transparent;
+    border: 1px solid var(--line); border-radius: 999px; padding: 10px 18px;
+  }
+  .tab:hover { color: var(--text); border-color: var(--gold); }
+  .tab[aria-selected="true"] { background: var(--gold); color: #1b1207; border-color: var(--gold); }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 22px 20px 80px; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; }
+  .panel h2 { font-size: 1.6rem; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
+  @media (max-width: 820px) { .cols { grid-template-columns: 1fr; } .panel { padding: 20px; } }
+
+  .preview { border: 1px dashed var(--line); border-radius: var(--radius); padding: 22px; background: var(--bg); }
+  .preview-label { font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .preview h1 { font-size: clamp(1.6rem, 3.4vw, 2.3rem); }
+  .preview h1 .hl { color: var(--gold); font-style: italic; }
+  .preview p { color: var(--muted); margin: 0; }
+  .promo-preview {
+    padding: 10px 16px; text-align: center; font-weight: 700; font-size: .92rem; border-radius: 10px;
+    color: #1b1207; background: linear-gradient(90deg, #b9853c, var(--gold-2) 50%, #b9853c);
+  }
+  .promo-preview span.btnp { display: inline-block; margin-left: 10px; padding: 3px 12px; border-radius: 999px; background: #1b1207; color: var(--gold-2); font-size: .82rem; }
+  .promo-off { color: var(--muted); text-align: center; padding: 10px; }
+
+  .switch { display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 18px; font-weight: 700; }
+  .switch input { appearance: none; width: 46px; height: 26px; border-radius: 999px; background: var(--line); position: relative; cursor: pointer; margin: 0; transition: background .15s ease; }
+  .switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--text); transition: transform .15s ease; }
+  .switch input:checked { background: var(--wa); }
+  .switch input:checked::after { transform: translateX(20px); }
+
+  .save-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+  .status { font-size: .9rem; color: var(--muted); }
+  .status.ok { color: var(--wa); }
+  .status.err { color: var(--danger); }
+
+  /* Agenda */
+  .cal-wrap { max-width: 460px; }
+  .busy-list { list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-wrap: wrap; gap: 8px; max-height: 260px; overflow: auto; }
+  .busy-list li {
+    display: inline-flex; align-items: center; gap: 6px; padding: 5px 6px 5px 12px; border-radius: 999px; font-size: .85rem; font-weight: 600;
+    background: rgba(138, 59, 52, .22); border: 1px solid rgba(200, 90, 80, .35);
+  }
+  .busy-list button { border: 0; background: transparent; color: var(--text); cursor: pointer; font-size: 1rem; width: 24px; height: 24px; border-radius: 50%; }
+  .busy-list button:hover { background: rgba(255, 255, 255, .1); }
+  .empty { color: var(--muted); font-size: .92rem; }
+
+  /* Vídeos */
+  .video-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 16px; margin-top: 28px; }
+  .video-item { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--bg); }
+  .video-item .frame { aspect-ratio: 16 / 9; background: #000; }
+  .video-item iframe, .video-item video { width: 100%; height: 100%; border: 0; display: block; }
+  .video-item .meta { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; }
+  .video-item .meta span { font-weight: 600; font-size: .92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .video-item .kind { color: var(--muted); font-size: .75rem; display: block; }
+  progress { width: 100%; height: 10px; accent-color: var(--gold); margin-top: 10px; }
+  .box { border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  .box h3 { font-size: 1.15rem; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-neck" viewBox="0 0 300 40">
+    <path d="M0 14h240v12H0z" fill="currentColor" fill-opacity=".12" stroke="currentColor" stroke-width="1"/>
+    <path d="M213.1 14v12M187.6 14v12M163.6 14v12M141 14v12M119.6 14v12M99.4 14v12M80.4 14v12M62.4 14v12M45.4 14v12M29.4 14v12M14.3 14v12" stroke="currentColor" stroke-width="1.1"/>
+    <g fill="currentColor"><circle cx="175.6" cy="20" r="1.6"/><circle cx="130.3" cy="20" r="1.6"/><circle cx="89.9" cy="20" r="1.6"/><circle cx="53.9" cy="20" r="1.6"/><circle cx="7.2" cy="17" r="1.4"/><circle cx="7.2" cy="23" r="1.4"/></g>
+    <path d="M240 13v14" stroke="currentColor" stroke-width="2.6"/>
+    <path d="M241.5 12 292 8q8 0 8 6v12q0 6-8 6l-50.5-4z" fill="currentColor" fill-opacity=".12" stroke="currentColor" stroke-width="1.1"/>
+    <rect x="252" y="15.2" width="38" height="3" rx="1.5" fill="none" stroke="currentColor" stroke-width=".8"/>
+    <rect x="252" y="21.8" width="38" height="3" rx="1.5" fill="none" stroke="currentColor" stroke-width=".8"/>
+    <g fill="currentColor"><circle cx="259" cy="5" r="2.6"/><circle cx="271" cy="4.4" r="2.6"/><circle cx="283" cy="3.8" r="2.6"/><circle cx="259" cy="35" r="2.6"/><circle cx="271" cy="35.6" r="2.6"/><circle cx="283" cy="36.2" r="2.6"/></g>
+    <path d="M259 7.6v4M271 7v4M283 6.4v4M259 32.4v-4M271 33v-4M283 33.6v-4" stroke="currentColor" stroke-width="1"/>
+    <path d="M0 15.6h256M0 17.3h256M0 19.1h256M0 20.9h256M0 22.7h256M0 24.4h256" stroke="currentColor" stroke-width=".45" stroke-opacity=".9"/>
+  </symbol>
+</svg>
+
+<!-- Login -->
+<section class="login" id="login-view" hidden>
+  <div class="login-card">
+    <span class="logo">
+      <span class="logo-name">LETIERI <b>SILVEIRA</b></span>
+      <svg class="logo-neck" viewBox="0 0 300 40" aria-hidden="true"><use href="#i-neck"/></svg>
+    </span>
+    <h1 style="font-size:1.4rem">Painel do artista</h1>
+    <form id="login-form">
+      <div class="field">
+        <label for="password">Senha</label>
+        <input type="password" id="password" autocomplete="current-password" required>
+      </div>
+      <button class="btn btn-gold" type="submit">Entrar</button>
+      <p class="error" id="login-error" role="alert"></p>
+    </form>
+  </div>
+</section>
+
+<!-- Painel -->
+<div id="admin-view" hidden>
+  <header>
+    <div class="bar">
+      <a class="logo" href="/" target="_blank" rel="noopener" aria-label="Abrir o site">
+        <span class="logo-name">LETIERI <b>SILVEIRA</b><span class="badge">Admin</span></span>
+        <svg class="logo-neck" viewBox="0 0 300 40" aria-hidden="true"><use href="#i-neck"/></svg>
+      </a>
+      <div class="actions">
+        <a class="btn btn-ghost" href="/" target="_blank" rel="noopener">Ver site ↗</a>
+        <button class="btn btn-ghost" id="logout" type="button">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Seções do painel">
+    <button class="tab" role="tab" aria-selected="true" aria-controls="p-slogan" id="t-slogan">✍️ Slogan</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-agenda" id="t-agenda" tabindex="-1">📅 Agenda</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-promo" id="t-promo" tabindex="-1">📣 Promoção</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-videos" id="t-videos" tabindex="-1">🎬 Vídeos</button>
+  </nav>
+
+  <main>
+    <!-- Slogan -->
+    <section class="panel" role="tabpanel" id="p-slogan" aria-labelledby="t-slogan">
+      <h2>Slogan do topo</h2>
+      <p class="hint">É a frase grande que aparece no começo do site. A parte em destaque fica dourada.</p>
+      <div class="cols">
+        <form id="slogan-form">
+          <div class="field">
+            <label for="s-text">Texto principal</label>
+            <input type="text" id="s-text" maxlength="120">
+          </div>
+          <div class="field">
+            <label for="s-hl">Destaque <small>(dourado)</small></label>
+            <input type="text" id="s-hl" maxlength="80">
+          </div>
+          <div class="field">
+            <label for="s-sub">Frase de apoio <small>(abaixo do slogan)</small></label>
+            <textarea id="s-sub" maxlength="200" rows="2"></textarea>
+          </div>
+          <div class="save-row">
+            <button class="btn btn-gold" type="submit">Salvar slogan</button>
+            <span class="status" role="status"></span>
+          </div>
+        </form>
+        <div class="preview">
+          <div class="preview-label">Prévia</div>
+          <h1><span id="pv-text"></span> <span class="hl" id="pv-hl"></span></h1>
+          <p id="pv-sub"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Agenda -->
+    <section class="panel" role="tabpanel" id="p-agenda" aria-labelledby="t-agenda" hidden>
+      <h2>Agenda disponível</h2>
+      <p class="hint">Toque em uma data para marcar como <b>reservada</b> (vermelho). Toque de novo para liberar (verde). Depois clique em <b>Salvar agenda</b>.</p>
+      <div class="cols">
+        <div class="cal-wrap">
+          <div id="admin-cal"></div>
+          <div class="cal-legend"><span><i class="lg-free"></i>Disponível</span><span><i class="lg-busy"></i>Reservado</span></div>
+        </div>
+        <div>
+          <h3>Datas reservadas</h3>
+          <ul class="busy-list" id="busy-list"></ul>
+          <div class="save-row">
+            <button class="btn btn-gold" id="save-agenda" type="button">Salvar agenda</button>
+            <span class="status" id="agenda-status" role="status"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Promoção -->
+    <section class="panel" role="tabpanel" id="p-promo" aria-labelledby="t-promo" hidden>
+      <h2>Promoção no topo da página</h2>
+      <p class="hint">Uma faixa dourada que aparece acima de tudo no site. Se deixar o link vazio, o botão abre o WhatsApp com a promoção.</p>
+      <div class="cols">
+        <form id="promo-form">
+          <label class="switch"><input type="checkbox" id="p-active"> Exibir promoção no site</label>
+          <div class="field">
+            <label for="p-text">Texto da promoção</label>
+            <input type="text" id="p-text" maxlength="160" placeholder="Ex.: 🎉 Casamentos em dezembro com 10% de desconto!">
+          </div>
+          <div class="field">
+            <label for="p-btn">Texto do botão <small>(opcional)</small></label>
+            <input type="text" id="p-btn" maxlength="40" placeholder="Ex.: Quero aproveitar">
+          </div>
+          <div class="field">
+            <label for="p-link">Link do botão <small>(opcional, https://… ou #agenda)</small></label>
+            <input type="text" id="p-link" maxlength="500" placeholder="Vazio = abre o WhatsApp">
+          </div>
+          <div class="save-row">
+            <button class="btn btn-gold" type="submit">Salvar promoção</button>
+            <span class="status" role="status"></span>
+          </div>
+        </form>
+        <div class="preview">
+          <div class="preview-label">Prévia</div>
+          <div id="promo-pv"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Vídeos -->
+    <section class="panel" role="tabpanel" id="p-videos" aria-labelledby="t-videos" hidden>
+      <h2>Vídeos</h2>
+      <p class="hint">Os vídeos aparecem na seção “Vídeos” do site, do mais novo para o mais antigo.</p>
+      <div class="cols">
+        <form class="box" id="upload-form">
+          <h3>Enviar vídeo do computador/celular</h3>
+          <div class="field">
+            <label for="u-title">Título</label>
+            <input type="text" id="u-title" maxlength="120" placeholder="Ex.: Ao vivo no Coco Bambu">
+          </div>
+          <div class="field">
+            <label for="u-file">Arquivo <small>(MP4, WebM ou MOV)</small></label>
+            <input type="file" id="u-file" accept="video/mp4,video/webm,video/quicktime" required>
+          </div>
+          <div class="save-row">
+            <button class="btn btn-gold" type="submit">Enviar vídeo</button>
+            <span class="status" role="status"></span>
+          </div>
+          <progress id="u-progress" max="100" value="0" hidden></progress>
+        </form>
+        <form class="box" id="link-form">
+          <h3>Adicionar vídeo do YouTube</h3>
+          <div class="field">
+            <label for="y-title">Título</label>
+            <input type="text" id="y-title" maxlength="120" placeholder="Ex.: Planejei (Ao Vivo)">
+          </div>
+          <div class="field">
+            <label for="y-url">Link do YouTube</label>
+            <input type="url" id="y-url" required placeholder="https://www.youtube.com/watch?v=…">
+          </div>
+          <div class="save-row">
+            <button class="btn btn-gold" type="submit">Adicionar</button>
+            <span class="status" role="status"></span>
+          </div>
+        </form>
+      </div>
+      <div class="video-list" id="video-list"></div>
+    </section>
+  </main>
+</div>
+
+<script src="assets/calendar.js"></script>
+<script>
+  const $ = (id) => document.getElementById(id);
+  let config = null;
+  let busy = new Set();
+  let agendaDirty = false;
+
+  async function api(path, { method = "GET", body, headers = {} } = {}) {
+    const opts = { method, headers: { "X-Admin": "1", ...headers }, credentials: "same-origin" };
+    if (body !== undefined) {
+      opts.body = JSON.stringify(body);
+      opts.headers["Content-Type"] = "application/json";
+    }
+    const res = await fetch(path, opts);
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401 && path.startsWith("/api/admin/")) showLogin("Sua sessão expirou. Entre novamente.");
+    if (!res.ok) throw new Error(data.error || "Algo deu errado. Tente novamente.");
+    return data;
+  }
+
+  function setStatus(el, text, kind = "") {
+    el.textContent = text;
+    el.className = "status " + kind;
+  }
+
+  // ---------- Login ----------
+  function showLogin(message = "") {
+    $("admin-view").hidden = true;
+    $("login-view").hidden = false;
+    $("login-error").textContent = message;
+    $("password").focus();
+  }
+
+  async function showAdmin() {
+    config = await api("/api/config");
+    $("login-view").hidden = true;
+    $("admin-view").hidden = false;
+    fillSlogan();
+    fillPromo();
+    busy = new Set(config.busyDates);
+    agendaDirty = false;
+    renderAgenda();
+    renderVideos();
+  }
+
+  $("login-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = e.submitter;
+    btn.disabled = true;
+    $("login-error").textContent = "";
+    try {
+      await api("/api/login", { method: "POST", body: { password: $("password").value } });
+      $("password").value = "";
+      await showAdmin();
+    } catch (err) {
+      $("login-error").textContent = err.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $("logout").addEventListener("click", async () => {
+    if (agendaDirty && !confirm("Há alterações na agenda que não foram salvas. Sair mesmo assim?")) return;
+    await api("/api/logout", { method: "POST" }).catch(() => {});
+    agendaDirty = false;
+    showLogin();
+  });
+
+  // ---------- Abas ----------
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  const selectTab = (tab) => tabs.forEach((t) => {
+    const on = t === tab;
+    t.setAttribute("aria-selected", on);
+    t.tabIndex = on ? 0 : -1;
+    $(t.getAttribute("aria-controls")).hidden = !on;
+  });
+  tabs.forEach((tab, i) => {
+    tab.addEventListener("click", () => selectTab(tab));
+    tab.addEventListener("keydown", (e) => {
+      const dir = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+      if (!dir) return;
+      const next = tabs[(i + dir + tabs.length) % tabs.length];
+      selectTab(next);
+      next.focus();
+    });
+  });
+
+  // ---------- Slogan ----------
+  function previewSlogan() {
+    $("pv-text").textContent = $("s-text").value;
+    $("pv-hl").textContent = $("s-hl").value;
+    $("pv-sub").textContent = $("s-sub").value;
+  }
+  function fillSlogan() {
+    $("s-text").value = config.slogan.text;
+    $("s-hl").value = config.slogan.highlight;
+    $("s-sub").value = config.slogan.subtitle;
+    previewSlogan();
+  }
+  ["s-text", "s-hl", "s-sub"].forEach((id) => $(id).addEventListener("input", previewSlogan));
+
+  async function saveSettings(form, patch) {
+    const status = form.querySelector(".status");
+    const btn = form.querySelector('[type="submit"]');
+    btn.disabled = true;
+    setStatus(status, "Salvando…");
+    try {
+      config = await api("/api/admin/settings", {
+        method: "PUT",
+        body: { slogan: config.slogan, promo: config.promo, ...patch },
+      });
+      setStatus(status, "✓ Salvo! Já está no site.", "ok");
+    } catch (err) {
+      setStatus(status, err.message, "err");
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  $("slogan-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    saveSettings(e.target, { slogan: { text: $("s-text").value, highlight: $("s-hl").value, subtitle: $("s-sub").value } });
+  });
+
+  // ---------- Promoção ----------
+  function previewPromo() {
+    const pv = $("promo-pv");
+    pv.replaceChildren();
+    if (!$("p-active").checked || !$("p-text").value.trim()) {
+      const off = document.createElement("div");
+      off.className = "promo-off";
+      off.textContent = $("p-active").checked ? "Escreva o texto da promoção." : "Promoção desligada: nada aparece no site.";
+      pv.append(off);
+      return;
+    }
+    const bar = document.createElement("div");
+    bar.className = "promo-preview";
+    bar.textContent = $("p-text").value;
+    if ($("p-btn").value.trim()) {
+      const b = document.createElement("span");
+      b.className = "btnp";
+      b.textContent = $("p-btn").value;
+      bar.append(b);
+    }
+    pv.append(bar);
+  }
+  function fillPromo() {
+    $("p-active").checked = config.promo.active;
+    $("p-text").value = config.promo.text;
+    $("p-btn").value = config.promo.buttonText;
+    $("p-link").value = config.promo.link;
+    previewPromo();
+  }
+  ["p-active", "p-text", "p-btn"].forEach((id) => $(id).addEventListener("input", previewPromo));
+
+  $("promo-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    saveSettings(e.target, {
+      promo: { active: $("p-active").checked, text: $("p-text").value, buttonText: $("p-btn").value, link: $("p-link").value },
+    });
+  });
+
+  // ---------- Agenda ----------
+  const adminCal = MiniCalendar.create($("admin-cal"), {
+    isBusy: (k) => busy.has(k),
+    labels: { free: "disponível, toque para reservar", busy: "reservado, toque para liberar" },
+    onSelect: (k) => {
+      busy.has(k) ? busy.delete(k) : busy.add(k);
+      agendaDirty = true;
+      setStatus($("agenda-status"), "Alterações não salvas.");
+      renderBusyList();
+    },
+  });
+
+  function renderBusyList() {
+    const list = $("busy-list");
+    list.replaceChildren();
+    const today = MiniCalendar.todayKey();
+    const upcoming = [...busy].filter((k) => k >= today).sort();
+    if (!upcoming.length) {
+      const li = document.createElement("li");
+      li.className = "empty";
+      li.style.cssText = "background:none;border:0;padding:0";
+      li.textContent = "Nenhuma data reservada. Todas as datas aparecem como disponíveis.";
+      list.append(li);
+      return;
+    }
+    for (const k of upcoming) {
+      const li = document.createElement("li");
+      li.textContent = MiniCalendar.formatKey(k, { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" });
+      const rm = document.createElement("button");
+      rm.type = "button";
+      rm.textContent = "×";
+      rm.setAttribute("aria-label", "Liberar " + MiniCalendar.formatKey(k));
+      rm.addEventListener("click", () => {
+        busy.delete(k);
+        agendaDirty = true;
+        setStatus($("agenda-status"), "Alterações não salvas.");
+        renderAgenda();
+      });
+      li.append(rm);
+      list.append(li);
+    }
+  }
+  function renderAgenda() { adminCal.render(); renderBusyList(); }
+
+  $("save-agenda").addEventListener("click", async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    setStatus($("agenda-status"), "Salvando…");
+    try {
+      config = await api("/api/admin/availability", { method: "PUT", body: { busyDates: [...busy] } });
+      agendaDirty = false;
+      setStatus($("agenda-status"), "✓ Agenda salva! Já está no site.", "ok");
+    } catch (err) {
+      setStatus($("agenda-status"), err.message, "err");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  window.addEventListener("beforeunload", (e) => { if (agendaDirty) e.preventDefault(); });
+
+  // ---------- Vídeos ----------
+  function renderVideos() {
+    const list = $("video-list");
+    list.replaceChildren();
+    if (!config.videos.length) {
+      const p = document.createElement("p");
+      p.className = "empty";
+      p.textContent = "Nenhum vídeo ainda. Envie um arquivo ou adicione um link do YouTube.";
+      list.append(p);
+      return;
+    }
+    for (const v of config.videos) {
+      const item = document.createElement("div");
+      item.className = "video-item";
+      const frame = document.createElement("div");
+      frame.className = "frame";
+      if (v.type === "youtube") {
+        const iframe = document.createElement("iframe");
+        iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.youtubeId)}`;
+        iframe.title = v.title;
+        iframe.loading = "lazy";
+        iframe.allowFullscreen = true;
+        frame.append(iframe);
+      } else {
+        const video = document.createElement("video");
+        video.src = v.src;
+        video.controls = true;
+        video.preload = "metadata";
+        frame.append(video);
+      }
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const name = document.createElement("span");
+      name.textContent = v.title;
+      const kind = document.createElement("small");
+      kind.className = "kind";
+      kind.textContent = v.type === "youtube" ? "YouTube" : "Arquivo enviado";
+      name.append(kind);
+      const del = document.createElement("button");
+      del.className = "btn btn-danger";
+      del.type = "button";
+      del.textContent = "Excluir";
+      del.addEventListener("click", async () => {
+        if (!confirm(`Excluir o vídeo “${v.title}”?`)) return;
+        del.disabled = true;
+        try {
+          config = await api(`/api/admin/videos/${encodeURIComponent(v.id)}`, { method: "DELETE" });
+          renderVideos();
+        } catch (err) {
+          alert(err.message);
+          del.disabled = false;
+        }
+      });
+      meta.append(name, del);
+      item.append(frame, meta);
+      list.append(item);
+    }
+  }
+
+  $("link-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const status = form.querySelector(".status");
+    const btn = form.querySelector('[type="submit"]');
+    btn.disabled = true;
+    setStatus(status, "Adicionando…");
+    try {
+      config = await api("/api/admin/videos/link", { method: "POST", body: { title: $("y-title").value, url: $("y-url").value } });
+      form.reset();
+      setStatus(status, "✓ Vídeo adicionado!", "ok");
+      renderVideos();
+    } catch (err) {
+      setStatus(status, err.message, "err");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Envio com XMLHttpRequest para mostrar a barra de progresso.
+  $("upload-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const file = $("u-file").files[0];
+    const status = form.querySelector(".status");
+    const btn = form.querySelector('[type="submit"]');
+    const bar = $("u-progress");
+    if (!file) return;
+    const type = file.type || (file.name.toLowerCase().endsWith(".mov") ? "video/quicktime" : "");
+    const title = $("u-title").value.trim() || file.name.replace(/\.[^.]+$/, "");
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `/api/admin/videos/upload?title=${encodeURIComponent(title)}`);
+    xhr.setRequestHeader("X-Admin", "1");
+    xhr.setRequestHeader("Content-Type", type);
+    xhr.upload.onprogress = (ev) => {
+      if (!ev.lengthComputable) return;
+      bar.value = Math.round((ev.loaded / ev.total) * 100);
+      setStatus(status, `Enviando… ${bar.value}%`);
+    };
+    xhr.onload = () => {
+      let data = {};
+      try { data = JSON.parse(xhr.responseText); } catch {}
+      btn.disabled = false;
+      bar.hidden = true;
+      if (xhr.status === 401) return showLogin("Sua sessão expirou. Entre novamente.");
+      if (xhr.status >= 200 && xhr.status < 300) {
+        config = data;
+        form.reset();
+        setStatus(status, "✓ Vídeo enviado!", "ok");
+        renderVideos();
+      } else {
+        setStatus(status, data.error || "Não foi possível enviar o vídeo.", "err");
+      }
+    };
+    xhr.onerror = () => {
+      btn.disabled = false;
+      bar.hidden = true;
+      setStatus(status, "Falha na conexão durante o envio.", "err");
+    };
+    btn.disabled = true;
+    bar.value = 0;
+    bar.hidden = false;
+    setStatus(status, "Enviando… 0%");
+    xhr.send(file);
+  });
+
+  // ---------- Início ----------
+  fetch("/api/session", { credentials: "same-origin" })
+    .then((r) => r.json())
+    .then((s) => (s.authed ? showAdmin() : showLogin()))
+    .catch(() => showLogin("Não foi possível falar com o servidor."));
+</script>
+</body>
+</html>

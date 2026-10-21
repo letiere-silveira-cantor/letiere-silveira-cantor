@@ -1,0 +1,13 @@
+{
+  "name": "letieri-silveira-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Site de agendamentos do cantor Letieri Silveira, com painel admin.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

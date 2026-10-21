@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/calendar.css">
 <style>
   :root {
     --bg: #0f0d0b;
@@ -98,7 +99,7 @@
   }
   .hero-grid { display: grid; grid-template-columns: 1.15fr .85fr; align-items: center; gap: 48px; }
   .hero h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); margin-bottom: 16px; letter-spacing: -.01em; }
-  .hero h1 span { color: var(--gold); font-style: italic; }
+  .hero h1 .hl { color: var(--gold); font-style: italic; }
   .hero .role { font-size: 1.15rem; color: var(--muted); margin: 0 0 22px; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; }
   .chip {
@@ -304,6 +305,45 @@
   .btn .ic { width: 18px; height: 18px; color: var(--gold); }
   .btn-gold .ic { color: currentColor; }
 
+  /* Faixa de promoção (editada no admin) */
+  .promo {
+    position: relative; padding: 10px 48px; text-align: center; font-weight: 700; font-size: .93rem;
+    color: #1b1207; background: linear-gradient(90deg, #b9853c, var(--gold-2) 50%, #b9853c);
+  }
+  .promo[hidden] { display: none; }
+  .promo a {
+    display: inline-block; margin-left: 10px; padding: 4px 14px; border-radius: 999px; white-space: nowrap;
+    background: #1b1207; color: var(--gold-2); text-decoration: none; font-size: .85rem;
+  }
+  .promo-close {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    width: 34px; height: 34px; border: 0; background: transparent; color: inherit; font-size: 1.3rem; cursor: pointer;
+  }
+
+  /* Agenda (calendário público) */
+  .agenda { display: grid; grid-template-columns: .9fr 1.1fr; gap: 48px; align-items: start; }
+  .agenda-card {
+    justify-self: end; width: 100%; max-width: 480px;
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px;
+  }
+  .agenda-info { margin-top: 26px; padding: 20px; border: 1px dashed var(--line); border-radius: var(--radius); }
+  .agenda-info p { margin: 0; color: var(--muted); }
+  .agenda-info strong { color: var(--text); }
+  .agenda-info .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .agenda-info .tag { display: inline-block; font-weight: 700; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; }
+  .agenda-info .tag.free { color: var(--wa); }
+  .agenda-info .tag.busy { color: #e0938a; }
+  .date-warning { color: #e0938a; font-size: .82rem; }
+  @media (max-width: 880px) { .agenda { grid-template-columns: 1fr; gap: 28px; } .agenda-card { justify-self: stretch; max-width: none; } }
+
+  /* Vídeos (enviados pelo admin) */
+  .videos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 18px; margin: 32px 0 28px; }
+  .videos[hidden] { display: none; }
+  .video { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .video-frame { aspect-ratio: 16 / 9; background: #000; }
+  .video-frame iframe, .video-frame video { width: 100%; height: 100%; border: 0; display: block; }
+  .video h3 { font-family: "Manrope", system-ui, sans-serif; font-size: 1rem; margin: 0; padding: 14px 16px; }
+
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     * { transition: none !important; }
@@ -365,6 +405,11 @@
   <symbol id="i-mic-s" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="8.5" y="2" width="7" height="12" rx="3.5"/><path d="M8.5 6.5h7M8.5 9.5h7" stroke-width="1"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></g></symbol>
 </svg>
 
+<div class="promo" id="promo" role="region" aria-label="Promoção" hidden>
+  <span id="promo-text"></span><a id="promo-link" href="#" hidden></a>
+  <button class="promo-close" id="promo-close" type="button" aria-label="Fechar promoção">×</button>
+</div>
+
 <header>
   <div class="wrap nav">
     <a class="logo" href="#inicio" aria-label="Letieri Silveira, início">
@@ -374,7 +419,8 @@
     <ul>
       <li><a href="#estilos">Repertório</a></li>
       <li><a href="#eventos">Eventos</a></li>
-      <li><a href="#onde-toca">Onde toca</a></li>
+      <li><a href="#agenda">Agenda</a></li>
+      <li><a href="#videos">Vídeos</a></li>
       <li><a href="#agendar">Agendar</a></li>
     </ul>
     <a class="btn btn-wa" href="#agendar"><svg><use href="#i-wa"/></svg>Agendar</a>
@@ -389,8 +435,8 @@
     <div class="wrap hero-grid">
       <div>
         <p class="eyebrow">Letieri Silveira · Músico &amp; Cantor</p>
-        <h1>Seu grande momento merece <span>trilha sonora ao vivo.</span></h1>
-        <p class="role">Voz, violão e emoção para o seu evento em Florianópolis e região.</p>
+        <h1 id="slogan"><span id="slogan-text">Seu grande momento merece</span> <span class="hl" id="slogan-hl">trilha sonora ao vivo.</span></h1>
+        <p class="role" id="slogan-sub">Voz, violão e emoção para o seu evento em Florianópolis e região.</p>
         <div class="chips" aria-label="Estilos musicais">
           <span class="chip">SERTANEJO</span><span class="chip">MPB</span><span class="chip">REGGAE</span><span class="chip">ROCK</span>
         </div>
@@ -417,11 +463,11 @@
         <span>Receba um orçamento de acordo com o tipo de evento, duração e local.</span>
         <em>Consultar valores →</em>
       </a>
-      <a class="quick-card" data-wa="agenda" href="#">
+      <a class="quick-card" href="#agenda">
         <span class="ico" aria-hidden="true"><svg><use href="#i-cal"/></svg></span>
         <strong>Datas e agenda disponível</strong>
-        <span>Confira se a data do seu evento ainda está livre na agenda.</span>
-        <em>Ver disponibilidade →</em>
+        <span>Veja no calendário as datas livres e reserve a sua.</span>
+        <em>Ver calendário →</em>
       </a>
       <a class="quick-card" href="#agendar">
         <span class="ico" aria-hidden="true"><svg><use href="#i-mic-s"/></svg></span>
@@ -579,6 +625,24 @@
     </div>
   </section>
 
+  <!-- Agenda -->
+  <section id="agenda">
+    <div class="wrap agenda">
+      <div>
+        <p class="eyebrow">Agenda</p>
+        <h2>Datas disponíveis</h2>
+        <p class="lead">As datas em verde estão livres. Toque em uma data para reservar ou tirar dúvidas pelo WhatsApp.</p>
+        <div class="agenda-info" id="agenda-info" aria-live="polite">
+          <p>Escolha uma data no calendário. A confirmação final é feita pelo WhatsApp.</p>
+        </div>
+      </div>
+      <div class="agenda-card">
+        <div id="public-cal"></div>
+        <div class="cal-legend"><span><i class="lg-free"></i>Disponível</span><span><i class="lg-busy"></i>Reservado</span></div>
+      </div>
+    </div>
+  </section>
+
   <!-- Agendamento -->
   <section id="agendar">
     <svg class="engrave e-book-mic" viewBox="0 0 120 300" aria-hidden="true"><use href="#i-mic"/></svg>
@@ -617,6 +681,7 @@
         <div class="field">
           <label for="f-data">Data do evento</label>
           <input id="f-data" name="data" type="date" required>
+          <span class="date-warning" id="date-warning" hidden>Esta data aparece como reservada. Envie mesmo assim para confirmar.</span>
         </div>
         <div class="field">
           <label for="f-hora">Horário <small>(aproximado)</small></label>
@@ -665,9 +730,12 @@
 
   <div class="strings-wrap" aria-hidden="true"><div class="strings-divider"></div><svg class="pick"><use href="#i-pick-plain"/></svg></div>
 
-  <!-- Música -->
-  <section>
+  <!-- Vídeos -->
+  <section id="videos">
     <div class="wrap">
+      <p class="eyebrow">Vídeos</p>
+      <h2>Veja o Letieri ao vivo</h2>
+      <div class="videos" id="videos-grid" hidden></div>
       <div class="listen">
         <div>
           <p class="eyebrow">Ouça</p>
@@ -693,6 +761,7 @@
 
 <a class="wa-float" data-wa="agendar" href="#" aria-label="Falar no WhatsApp"><svg><use href="#i-wa"/></svg></a>
 
+<script src="assets/calendar.js"></script>
 <script>
   const WHATSAPP = "5548996967255";
   const waLink = (text) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`;
@@ -792,6 +861,129 @@
   form.querySelectorAll("[data-form-action]").forEach((b) => b.addEventListener("click", () => send(b.dataset.formAction)));
 
   document.getElementById("year").textContent = new Date().getFullYear();
+
+  // ---------- Conteúdo editável pelo admin ----------
+  const busyDates = new Set();
+  let selectedDate = null;
+  const agendaInfo = document.getElementById("agenda-info");
+  const dateWarning = document.getElementById("date-warning");
+
+  const calendar = MiniCalendar.create(document.getElementById("public-cal"), {
+    isBusy: (k) => busyDates.has(k),
+    isSelected: (k) => k === selectedDate,
+    labels: { free: "disponível", busy: "reservado" },
+    onSelect: (k) => { selectedDate = k; showDateInfo(k); },
+  });
+
+  function showDateInfo(k) {
+    const nice = MiniCalendar.formatKey(k);
+    const short = MiniCalendar.formatKey(k, { day: "2-digit", month: "2-digit", year: "numeric" });
+    const busy = busyDates.has(k);
+    agendaInfo.replaceChildren();
+    const tag = document.createElement("span");
+    tag.className = "tag " + (busy ? "busy" : "free");
+    tag.textContent = busy ? "Data reservada" : "Data disponível";
+    const p = document.createElement("p");
+    const strong = document.createElement("strong");
+    strong.textContent = nice.charAt(0).toUpperCase() + nice.slice(1);
+    p.append(strong, busy ? " já está reservada. Fale com o Letieri para ver outras opções." : " está livre na agenda!");
+    const actions = document.createElement("div");
+    actions.className = "actions";
+    const wa = document.createElement("a");
+    wa.className = "btn btn-wa";
+    wa.target = "_blank";
+    wa.rel = "noopener";
+    wa.innerHTML = '<svg><use href="#i-wa"/></svg>';
+    wa.append(busy ? "Ver outras datas" : "Consultar no WhatsApp");
+    wa.href = waLink(busy
+      ? `Olá, Letieri! Vi que o dia ${short} está reservado. Quais datas próximas você tem livres?`
+      : `Olá, Letieri! Vi no site que o dia ${short} está disponível. Gostaria de reservar! 🎶`);
+    actions.append(wa);
+    if (!busy) {
+      const reserve = document.createElement("a");
+      reserve.className = "btn btn-ghost";
+      reserve.href = "#agendar";
+      reserve.textContent = "Preencher agendamento";
+      reserve.addEventListener("click", () => { dateInput.value = k; checkDate(); });
+      actions.prepend(reserve);
+    }
+    agendaInfo.append(tag, p, actions);
+  }
+
+  const checkDate = () => { dateWarning.hidden = !busyDates.has(dateInput.value); };
+  dateInput.addEventListener("change", checkDate);
+
+  function applySlogan(slogan) {
+    if (!slogan) return;
+    document.getElementById("slogan-text").textContent = slogan.text || "";
+    document.getElementById("slogan-hl").textContent = slogan.highlight || "";
+    if (slogan.subtitle) document.getElementById("slogan-sub").textContent = slogan.subtitle;
+  }
+
+  function applyPromo(promo) {
+    const bar = document.getElementById("promo");
+    if (!promo || !promo.active || !promo.text) return;
+    let dismissed = null;
+    try { dismissed = sessionStorage.getItem("promo-fechada"); } catch {}
+    if (dismissed === promo.text) return;
+    document.getElementById("promo-text").textContent = promo.text;
+    const link = document.getElementById("promo-link");
+    if (promo.buttonText) {
+      link.textContent = promo.buttonText;
+      link.href = promo.link || waLink(`Olá, Letieri! Vi a promoção no site: "${promo.text}". Quero saber mais!`);
+      if (!promo.link.startsWith("#")) { link.target = "_blank"; link.rel = "noopener"; }
+      link.hidden = false;
+    }
+    bar.hidden = false;
+    document.getElementById("promo-close").addEventListener("click", () => {
+      bar.hidden = true;
+      try { sessionStorage.setItem("promo-fechada", promo.text); } catch {}
+    });
+  }
+
+  function applyVideos(videos) {
+    const grid = document.getElementById("videos-grid");
+    grid.replaceChildren();
+    for (const v of videos || []) {
+      const card = document.createElement("article");
+      card.className = "video";
+      const frame = document.createElement("div");
+      frame.className = "video-frame";
+      if (v.type === "youtube") {
+        const iframe = document.createElement("iframe");
+        iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.youtubeId)}`;
+        iframe.title = v.title;
+        iframe.loading = "lazy";
+        iframe.allow = "accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen";
+        iframe.allowFullscreen = true;
+        frame.append(iframe);
+      } else {
+        const video = document.createElement("video");
+        video.src = v.src;
+        video.controls = true;
+        video.preload = "metadata";
+        video.playsInline = true;
+        frame.append(video);
+      }
+      const h = document.createElement("h3");
+      h.textContent = v.title;
+      card.append(frame, h);
+      grid.append(card);
+    }
+    grid.hidden = !grid.children.length;
+  }
+
+  fetch("/api/config")
+    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+    .then((cfg) => {
+      applySlogan(cfg.slogan);
+      applyPromo(cfg.promo);
+      applyVideos(cfg.videos);
+      (cfg.busyDates || []).forEach((d) => busyDates.add(d));
+      calendar.render();
+      checkDate();
+    })
+    .catch(() => { /* Sem servidor (arquivo aberto direto): mantém o conteúdo padrão. */ });
 </script>
 </body>
 </html>
