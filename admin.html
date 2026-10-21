@@ -227,6 +227,19 @@
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .check { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: .9rem; margin-bottom: 16px; cursor: pointer; }
   .check input { accent-color: var(--gold); width: 18px; height: 18px; }
+
+  /* Datas fixas */
+  .fixed-box { margin-top: 26px; border-color: rgba(217, 169, 91, .45); background: linear-gradient(135deg, rgba(217, 169, 91, .08), transparent 60%); }
+  .fixed-form { display: grid; grid-template-columns: 1fr 1.4fr; gap: 0 14px; align-items: end; }
+  .fixed-form .full { grid-column: 1 / -1; }
+  .fixed-list { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 10px; }
+  .fixed-list li {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    padding: 12px 14px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line);
+  }
+  .fixed-list strong { display: block; }
+  .fixed-list small { color: var(--muted); }
+  @media (max-width: 560px) { .fixed-form { grid-template-columns: 1fr; } }
   /* Celular: tabelas viram cartões */
   @media (max-width: 560px) {
     .cmp thead, .shows-table thead { display: none; }
@@ -429,7 +442,7 @@
       <div class="cols agenda-cols">
         <div class="cal-wrap">
           <div id="admin-cal"></div>
-          <div class="cal-legend"><span><i class="lg-free"></i>Aberta</span><span><i class="lg-busy"></i>Reservada</span><span><i class="lg-today"></i>Hoje</span></div>
+          <div class="cal-legend"><span><i class="lg-free"></i>Aberta</span><span><i class="lg-busy"></i>Reservada</span><span><i class="lg-fixed"></i>Fixa 🔒</span><span><i class="lg-today"></i>Hoje</span></div>
           <div class="save-row">
             <span class="status" id="agenda-status" role="status"></span>
             <button class="btn btn-gold" id="save-agenda" type="button" hidden>Tentar salvar de novo</button>
@@ -439,6 +452,31 @@
           <h3>Datas reservadas</h3>
           <ul class="busy-list" id="busy-list"></ul>
         </div>
+      </div>
+
+      <div class="box fixed-box">
+        <h3>📌 Datas fixas</h3>
+        <p class="hint">Para shows já fechados em um local. A data é reservada automaticamente no calendário e fica travada 🔒: só volta a abrir se você remover a data fixa aqui.</p>
+        <form class="fixed-form" id="fixed-form">
+          <div class="field">
+            <label for="fx-date">Data</label>
+            <input type="date" id="fx-date" required>
+          </div>
+          <div class="field">
+            <label for="fx-venue">Local</label>
+            <input type="text" id="fx-venue" maxlength="80" placeholder="Ex.: Coco Bambu" required>
+          </div>
+          <label class="check full"><input type="checkbox" id="fx-repeat"> <span id="fx-repeat-label">Repetir toda semana</span></label>
+          <div class="field full" id="fx-until-wrap" hidden>
+            <label for="fx-until">Até <small>(opcional; vazio = sem data para acabar)</small></label>
+            <input type="date" id="fx-until">
+          </div>
+          <div class="save-row full">
+            <button class="btn btn-gold" type="submit">📌 Fixar data</button>
+            <span class="status" role="status"></span>
+          </div>
+        </form>
+        <ul class="fixed-list" id="fixed-list"></ul>
       </div>
     </section>
 
@@ -527,6 +565,8 @@
   let agendaDirty = false;
   let shows = [];
   let uploadMode = "local";
+  let fixed = [];
+  let fixedDays = new Map(); // data -> data fixa que ocupa aquele dia
 
   async function api(path, { method = "GET", body, headers = {} } = {}) {
     const opts = { method, headers: { "X-Admin": "1", ...headers }, credentials: "same-origin" };
@@ -560,7 +600,9 @@
     $("admin-view").hidden = false;
     fillSlogan();
     fillPromo();
-    busy = new Set(config.busyDates);
+    const agenda = await api("/api/admin/agenda");
+    busy = new Set(agenda.busyDates);
+    setFixed(agenda.fixed);
     agendaDirty = false;
     renderAgenda();
     renderVideos();
@@ -691,9 +733,14 @@
 
   // ---------- Agenda ----------
   const adminCal = MiniCalendar.create($("admin-cal"), {
-    isBusy: (k) => busy.has(k),
-    labels: { free: "aberta, toque para reservar", busy: "reservada, toque para abrir" },
+    isBusy: (k) => busy.has(k) || fixedDays.has(k),
+    isLocked: (k) => fixedDays.has(k),
+    labels: { free: "aberta, toque para reservar", busy: "reservada, toque para abrir", fixed: "data fixa, travada" },
     onSelect: (k) => {
+      if (fixedDays.has(k)) {
+        setStatus($("agenda-status"), `🔒 Data fixa: ${fixedDays.get(k).venue}. Para abrir, remova em “Datas fixas”.`, "err");
+        return;
+      }
       busy.has(k) ? busy.delete(k) : busy.add(k);
       renderBusyList();
       scheduleAgendaSave();
@@ -704,7 +751,7 @@
     const list = $("busy-list");
     list.replaceChildren();
     const today = MiniCalendar.todayKey();
-    const upcoming = [...busy].filter((k) => k >= today).sort();
+    const upcoming = [...busy].filter((k) => k >= today && !fixedDays.has(k)).sort();
     if (!upcoming.length) {
       const li = document.createElement("li");
       li.className = "empty";
@@ -729,7 +776,102 @@
       list.append(li);
     }
   }
-  function renderAgenda() { adminCal.render(); renderBusyList(); }
+  function renderAgenda() { adminCal.render(); renderBusyList(); renderFixedList(); }
+
+  // ---------- Datas fixas ----------
+  const WEEKDAY_NAMES = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
+  const weekdayOf = (k) => { const [y, m, d] = k.split("-").map(Number); return new Date(y, m - 1, d).getDay(); };
+  const ddmmyyyy = (k) => MiniCalendar.formatKey(k, { day: "2-digit", month: "2-digit", year: "numeric" });
+
+  function setFixed(list) {
+    fixed = list;
+    fixedDays = new Map();
+    for (const f of list) for (const d of f.occurrences) fixedDays.set(d, f);
+  }
+
+  function describeFixed(f) {
+    if (f.repeat !== "weekly") return MiniCalendar.formatKey(f.date);
+    const wd = WEEKDAY_NAMES[weekdayOf(f.date)];
+    const every = wd.endsWith("feira") || wd === "terça-feira" ? `Toda ${wd}` : `Todo ${wd}`;
+    return `${every} · a partir de ${ddmmyyyy(f.date)}${f.until ? ` até ${ddmmyyyy(f.until)}` : ""}`;
+  }
+
+  function renderFixedList() {
+    const list = $("fixed-list");
+    list.replaceChildren();
+    if (!fixed.length) {
+      const li = document.createElement("li");
+      li.className = "empty";
+      li.textContent = "Nenhuma data fixa cadastrada.";
+      list.append(li);
+      return;
+    }
+    for (const f of fixed) {
+      const li = document.createElement("li");
+      const info = document.createElement("div");
+      const title = document.createElement("strong");
+      title.textContent = `🔒 ${f.venue}`;
+      const desc = document.createElement("small");
+      desc.textContent = describeFixed(f);
+      info.append(title, desc);
+      const rm = document.createElement("button");
+      rm.type = "button";
+      rm.className = "btn btn-danger";
+      rm.textContent = "Remover data fixa";
+      rm.addEventListener("click", async () => {
+        if (!confirm(`Remover a data fixa “${f.venue}”? Os dias voltam a ficar abertos no calendário.`)) return;
+        rm.disabled = true;
+        try {
+          const res = await api(`/api/admin/fixed/${encodeURIComponent(f.id)}`, { method: "DELETE" });
+          setFixed(res.fixed);
+          config = res.config;
+          renderAgenda();
+          setStatus($("agenda-status"), `✓ Data fixa “${f.venue}” removida.`, "ok");
+        } catch (err) {
+          alert(err.message);
+          rm.disabled = false;
+        }
+      });
+      li.append(info, rm);
+      list.append(li);
+    }
+  }
+
+  function updateRepeatLabel() {
+    const k = $("fx-date").value;
+    const wd = k ? WEEKDAY_NAMES[weekdayOf(k)] : "";
+    $("fx-repeat-label").textContent = !wd ? "Repetir toda semana"
+      : wd.endsWith("feira") ? `Repetir toda ${wd}` : `Repetir todo ${wd}`;
+    $("fx-until-wrap").hidden = !$("fx-repeat").checked;
+  }
+  $("fx-date").addEventListener("input", updateRepeatLabel);
+  $("fx-repeat").addEventListener("change", updateRepeatLabel);
+
+  $("fixed-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const status = form.querySelector(".status");
+    const btn = form.querySelector('[type="submit"]');
+    btn.disabled = true;
+    setStatus(status, "Salvando…");
+    try {
+      const res = await api("/api/admin/fixed", {
+        method: "POST",
+        body: { date: $("fx-date").value, venue: $("fx-venue").value, repeat: $("fx-repeat").checked ? "weekly" : "none", until: $("fx-until").value },
+      });
+      setFixed(res.fixed);
+      config = res.config;
+      for (const d of fixedDays.keys()) busy.delete(d);
+      renderAgenda();
+      form.reset();
+      updateRepeatLabel();
+      setStatus(status, "✓ Data fixa salva e reservada no calendário!", "ok");
+    } catch (err) {
+      setStatus(status, err.message, "err");
+    } finally {
+      btn.disabled = false;
+    }
+  });
 
   // Salva sozinho a cada toque. Toques seguidos são agrupados e nunca há dois envios ao mesmo tempo.
   let agendaTimer = null;
@@ -1160,7 +1302,7 @@
         const res = await api("/api/admin/shows", { method: "POST", body: data });
         shows = res.shows;
         config = res.config;
-        if (!agendaDirty) { busy = new Set(config.busyDates); renderAgenda(); }
+        if (!agendaDirty) { busy = new Set(res.busyDates); renderAgenda(); }
         form.reset();
         $("sh-busy").checked = true;
         setStatus(status, data.markBusy ? "✓ Show registrado e data ocupada na agenda!" : "✓ Show registrado!", "ok");

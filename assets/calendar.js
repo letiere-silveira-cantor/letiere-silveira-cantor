@@ -16,7 +16,7 @@
     return new Date(y, m - 1, d).toLocaleDateString("pt-BR", opts);
   }
 
-  function create(root, { isBusy, onSelect, isSelected = () => false, monthsAhead = 18, labels = {} }) {
+  function create(root, { isBusy, onSelect, isSelected = () => false, isLocked = () => false, monthsAhead = 18, labels = {} }) {
     const now = new Date();
     const first = { y: now.getFullYear(), m: now.getMonth() };
     let y = first.y;
@@ -37,10 +37,12 @@
         const k = key(y, m, d);
         const past = k < today;
         const b = !past && isBusy(k);
+        const locked = !past && isLocked(k);
         const cls = ["cal-day", past ? "is-past" : b ? "is-busy" : "is-free"];
+        if (locked) cls.push("is-fixed");
         if (k === today) cls.push("is-today");
         if (isSelected(k)) cls.push("is-selected");
-        const label = `${WEEKDAYS[i % 7]}, ${d} de ${MONTHS[m].toLowerCase()}: ${past ? "data passada" : b ? busy : free}`;
+        const label = `${WEEKDAYS[i % 7]}, ${d} de ${MONTHS[m].toLowerCase()}: ${past ? "data passada" : locked ? labels.fixed || "data fixa" : b ? busy : free}`;
         frets += `<span class="fret"><button type="button" class="${cls.join(" ")}" data-key="${k}" aria-label="${label}"${past ? " disabled" : ""}>${d}</button></span>`;
       }
       root.innerHTML = `

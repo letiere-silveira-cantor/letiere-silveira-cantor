@@ -102,6 +102,13 @@
   background: radial-gradient(circle at 34% 28%, #4a4a4a, #111 50%, #000);
   box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .22), 0 3px 6px rgba(0, 0, 0, .6);
 }
+/* Data fixa (só no admin): bola preta com anel dourado e cadeado */
+.cal-day.is-fixed { box-shadow: 0 0 0 2px var(--gold), 0 3px 6px rgba(0, 0, 0, .6); cursor: not-allowed; }
+.cal-day.is-fixed::before {
+  content: "🔒"; position: absolute; top: -7px; right: -7px; font-size: 11px; line-height: 1;
+  background: var(--gold); border-radius: 50%; padding: 2px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .6));
+}
+.cal-legend .lg-fixed { background: radial-gradient(circle at 34% 28%, #4a4a4a, #111 50%, #000); box-shadow: 0 0 0 2px var(--gold); }
 .cal-day.is-past { background: transparent; color: rgba(255, 255, 255, .3); font-weight: 600; font-size: .82rem; cursor: default; }
 .cal-day.is-today::after {
   content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 2px dashed var(--gold); pointer-events: none;
