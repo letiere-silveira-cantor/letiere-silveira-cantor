@@ -476,6 +476,10 @@
             <label for="fx-venue">Local</label>
             <input type="text" id="fx-venue" maxlength="80" placeholder="Ex.: Coco Bambu" required>
           </div>
+          <div class="field full">
+            <label for="fx-value">Valor por show (R$) <small>(entra no dashboard)</small></label>
+            <input type="text" id="fx-value" inputmode="decimal" placeholder="Ex.: 800,00" required>
+          </div>
           <label class="check full"><input type="checkbox" id="fx-repeat"> <span id="fx-repeat-label">Repetir toda semana</span></label>
           <div class="field full" id="fx-until-wrap" hidden>
             <label for="fx-until">Até <small>(opcional; vazio = sem data para acabar)</small></label>
@@ -949,8 +953,24 @@
       const title = document.createElement("strong");
       title.textContent = `🔒 ${f.venue}`;
       const desc = document.createElement("small");
-      desc.textContent = describeFixed(f);
+      desc.textContent = `${describeFixed(f)} · ${f.value == null ? "valor não definido" : `${money(f.value)} por show`}`;
       info.append(title, desc);
+      const editValue = document.createElement("button");
+      editValue.type = "button";
+      editValue.className = "btn btn-ghost";
+      editValue.textContent = "Editar valor";
+      editValue.addEventListener("click", async () => {
+        const typed = prompt(`Valor por show em “${f.venue}” (R$):`, f.value == null ? "" : (f.value / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 }));
+        if (typed === null) return;
+        const value = parseBRL(typed);
+        if (Number.isNaN(value)) return alert("Valor inválido. Use, por exemplo, 800,00.");
+        try {
+          const res = await api(`/api/admin/fixed/${encodeURIComponent(f.id)}`, { method: "PUT", body: { value } });
+          setFixed(res.fixed);
+          renderFixedList();
+          renderDashboard();
+        } catch (err) { alert(err.message); }
+      });
       const rm = document.createElement("button");
       rm.type = "button";
       rm.className = "btn btn-danger";
@@ -963,13 +983,17 @@
           setFixed(res.fixed);
           config = res.config;
           renderAgenda();
+          renderDashboard();
           setStatus($("agenda-status"), `✓ Data fixa “${f.venue}” removida.`, "ok");
         } catch (err) {
           alert(err.message);
           rm.disabled = false;
         }
       });
-      li.append(info, rm);
+      const btns = document.createElement("div");
+      btns.className = "row-actions";
+      btns.append(editValue, rm);
+      li.append(info, btns);
       list.append(li);
     }
   }
@@ -989,12 +1013,14 @@
     const form = e.target;
     const status = form.querySelector(".status");
     const btn = form.querySelector('[type="submit"]');
+    const fxValue = parseBRL($("fx-value").value);
+    if (Number.isNaN(fxValue)) return setStatus(status, "Valor inválido. Use, por exemplo, 800,00.", "err");
     btn.disabled = true;
     setStatus(status, "Salvando…");
     try {
       const res = await api("/api/admin/fixed", {
         method: "POST",
-        body: { date: $("fx-date").value, venue: $("fx-venue").value, repeat: $("fx-repeat").checked ? "weekly" : "none", until: $("fx-until").value },
+        body: { date: $("fx-date").value, venue: $("fx-venue").value, repeat: $("fx-repeat").checked ? "weekly" : "none", until: $("fx-until").value, value: fxValue },
       });
       setFixed(res.fixed);
       config = res.config;
@@ -1002,7 +1028,8 @@
       renderAgenda();
       form.reset();
       updateRepeatLabel();
-      setStatus(status, "✓ Data fixa salva e reservada no calendário!", "ok");
+      renderDashboard();
+      setStatus(status, "✓ Data fixa salva, reservada no calendário e somada no dashboard!", "ok");
     } catch (err) {
       setStatus(status, err.message, "err");
     } finally {
@@ -1202,11 +1229,32 @@
     return s && Number.isFinite(n) && n >= 0 ? Math.round(n * 100) : NaN;
   }
 
+  // Dias do mês em que uma data fixa acontece (inclui meses passados, para o comparativo).
+  const utcDay = (k) => Date.parse(`${k}T00:00:00Z`);
+  const plusDays = (k, n) => new Date(utcDay(k) + n * 86400000).toISOString().slice(0, 10);
+  function fixedInMonth(f, y, m) {
+    const first = `${monthKey(y, m)}-01`;
+    const last = `${monthKey(y, m)}-${String(new Date(y, m + 1, 0).getDate()).padStart(2, "0")}`;
+    if (f.repeat !== "weekly") return f.date >= first && f.date <= last ? [f.date] : [];
+    if (f.date > last || (f.until && f.until < first)) return [];
+    let d = f.date;
+    if (d < first) d = plusDays(d, Math.ceil((utcDay(first) - utcDay(d)) / 86400000 / 7) * 7);
+    const out = [];
+    for (; d <= last && (!f.until || d <= f.until); d = plusDays(d, 7)) out.push(d);
+    return out;
+  }
+
   function monthStats(y, m) {
     const k = monthKey(y, m);
-    const list = shows.filter((s) => s.date.startsWith(k)).sort((a, b) => a.date.localeCompare(b.date));
+    const manual = shows.filter((s) => s.date.startsWith(k));
+    // Se ele registrou um show à mão no mesmo dia de uma data fixa, vale o registro manual.
+    const manualDays = new Set(manual.map((s) => s.date));
+    const fixedShows = fixed.flatMap((f) => fixedInMonth(f, y, m)
+      .filter((d) => !manualDays.has(d))
+      .map((d) => ({ id: `${f.id}:${d}`, date: d, title: f.venue, type: "Data fixa", value: f.value || 0, fixed: f })));
+    const list = [...manual, ...fixedShows].sort((a, b) => a.date.localeCompare(b.date));
     const total = list.reduce((sum, s) => sum + s.value, 0);
-    return { list, count: list.length, total, avg: list.length ? Math.round(total / list.length) : 0 };
+    return { list, count: list.length, fixedCount: fixedShows.length, total, avg: list.length ? Math.round(total / list.length) : 0 };
   }
 
   const shiftMonth = (y, m, delta) => { const d = new Date(y, m + delta, 1); return [d.getFullYear(), d.getMonth()]; };
@@ -1329,7 +1377,7 @@
   }
 
   function renderShowList(cur) {
-    $("list-title").textContent = `Shows de ${MONTHS[dashM].toLowerCase()} (${cur.count})`;
+    $("list-title").textContent = `Shows de ${MONTHS[dashM].toLowerCase()} (${cur.count}${cur.fixedCount ? ` · ${cur.fixedCount} fixo${cur.fixedCount > 1 ? "s" : ""}` : ""})`;
     const table = $("shows-table");
     table.replaceChildren();
     if (!cur.count) {
@@ -1351,16 +1399,27 @@
       const row = body.insertRow();
       row.insertCell().textContent = MiniCalendar.formatKey(s.date, { weekday: "short", day: "2-digit", month: "2-digit" });
       const who = row.insertCell();
-      who.textContent = s.title;
+      who.textContent = s.fixed ? `📌 ${s.title}` : s.title;
       const meta = document.createElement("small");
       meta.textContent = [s.type, s.notes].filter(Boolean).join(" · ");
       who.append(meta);
       const val = row.insertCell();
       val.className = "num";
-      val.textContent = money(s.value);
+      val.textContent = s.fixed && s.fixed.value == null ? "definir valor" : money(s.value);
       const actions = row.insertCell();
       const wrap = document.createElement("div");
       wrap.className = "row-actions";
+      if (s.fixed) {
+        // Datas fixas são editadas na aba Agenda.
+        const go = document.createElement("button");
+        go.type = "button";
+        go.className = "btn btn-ghost btn-sm";
+        go.textContent = "Ver na Agenda";
+        go.addEventListener("click", () => { selectTab($("t-agenda")); $("fixed-list").scrollIntoView({ behavior: "smooth", block: "center" }); });
+        wrap.append(go);
+        actions.append(wrap);
+        continue;
+      }
       const edit = document.createElement("button");
       edit.type = "button";
       edit.className = "btn btn-ghost btn-sm";
