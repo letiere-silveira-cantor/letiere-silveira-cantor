@@ -523,7 +523,7 @@
       <svg class="logo-neck" viewBox="0 0 300 40" aria-hidden="true"><use href="#i-neck"/></svg>
     </a>
     <ul>
-      <li><a href="#estilos">Repertório</a></li>
+      <li id="nav-estilos" hidden><a href="#estilos">Repertório</a></li>
       <li><a href="#eventos">Eventos</a></li>
       <li><a href="#agenda">Agenda</a></li>
       <li><a href="#videos">Vídeos</a></li>
@@ -631,14 +631,14 @@
     </div>
   </div>
 
-  <div class="strings-wrap" aria-hidden="true"><div class="strings-divider"></div><svg class="pick"><use href="#i-pick-plain"/></svg></div>
+  <div class="strings-wrap" id="estilos-divider" aria-hidden="true" hidden><div class="strings-divider"></div><svg class="pick"><use href="#i-pick-plain"/></svg></div>
 
-  <!-- Repertório -->
-  <section id="estilos">
+  <!-- Repertório (ligado/desligado no admin; começa desligado) -->
+  <section id="estilos" hidden>
     <div class="wrap">
-      <p class="eyebrow">Repertório</p>
+      <p class="eyebrow" id="genres-eyebrow">Repertório</p>
       <h2 id="genres-title">Quatro estilos, um show sob medida</h2>
-      <p class="lead">O repertório é montado para o seu público: do romântico ao animado, passando pelos clássicos que todo mundo canta junto.</p>
+      <p class="lead" id="genres-lead">O repertório é montado para o seu público: do romântico ao animado, passando pelos clássicos que todo mundo canta junto.</p>
       <div class="genres" id="genres-grid">
         <article class="genre">
           <div class="ico" aria-hidden="true">🤠</div>
@@ -1168,9 +1168,20 @@
       label.append(input, g.name);
       checks.append(label);
     }
-    const n = genres.length;
-    document.getElementById("genres-title").textContent =
-      n === 1 ? "Um estilo, um show sob medida" : `${NUMBERS[n] || n} estilos, um show sob medida`;
+  }
+
+  // Seção Repertório: só aparece quando ligada no admin. Título vazio = conta os estilos automaticamente.
+  function applyRepertoire(rep, genres) {
+    const on = Boolean(rep);
+    for (const id of ["estilos", "estilos-divider", "nav-estilos"]) document.getElementById(id).hidden = !on;
+    if (!on) return;
+    const n = (genres || []).length || 4;
+    const auto = n === 1 ? "Um estilo, um show sob medida" : `${NUMBERS[n] || n} estilos, um show sob medida`;
+    document.getElementById("genres-eyebrow").textContent = rep.eyebrow || "Repertório";
+    document.getElementById("genres-title").textContent = rep.title || auto;
+    const lead = document.getElementById("genres-lead");
+    lead.textContent = rep.lead;
+    lead.hidden = !rep.lead;
   }
 
   function applyAbout(about) {
@@ -1256,6 +1267,7 @@
       applyVideos(cfg.videos);
       applyReviews(cfg.reviews);
       applyGenres(cfg.genres);
+      applyRepertoire(cfg.repertoire, cfg.genres);
       applyAbout(cfg.about);
       setupMarquee();
       (cfg.busyDates || []).forEach((d) => busyDates.add(d));

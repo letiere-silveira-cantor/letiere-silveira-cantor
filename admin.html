@@ -242,6 +242,7 @@
   #about-text { min-height: 260px; line-height: 1.6; }
 
   /* Estilos musicais */
+  .rep-box { margin-bottom: 26px; }
   .genre-list { display: grid; gap: 10px; margin-bottom: 14px; }
   .genre-row {
     display: grid; grid-template-columns: 64px minmax(0, 1fr) minmax(0, 2fr) auto; gap: 10px; align-items: end;
@@ -595,6 +596,32 @@
     <section class="panel" role="tabpanel" id="p-genres" aria-labelledby="t-genres" hidden>
       <h2>Estilos musicais</h2>
       <p class="hint">Aparecem nas etiquetas do topo, nos cartões da seção Repertório e nas opções do formulário de agendamento. Use as setas para mudar a ordem. Até 12 estilos.</p>
+
+      <form class="box rep-box" id="rep-form">
+        <h3>Seção “Repertório” no site</h3>
+        <p class="hint">O bloco com o título e um cartão para cada estilo. Começa desligado.</p>
+        <label class="switch"><input type="checkbox" id="rep-active"> Exibir a seção Repertório no site</label>
+        <div class="two">
+          <div class="field">
+            <label for="rep-eyebrow">Texto pequeno acima do título</label>
+            <input type="text" id="rep-eyebrow" maxlength="40" placeholder="Repertório">
+          </div>
+          <div class="field">
+            <label for="rep-title">Título <small>(vazio = “Quatro estilos, um show sob medida”, contando os estilos)</small></label>
+            <input type="text" id="rep-title" maxlength="100" placeholder="Quatro estilos, um show sob medida">
+          </div>
+        </div>
+        <div class="field">
+          <label for="rep-lead">Texto abaixo do título <small>(opcional)</small></label>
+          <textarea id="rep-lead" maxlength="300" rows="2"></textarea>
+        </div>
+        <div class="save-row">
+          <button class="btn btn-gold" type="submit">Salvar seção</button>
+          <span class="status" role="status"></span>
+        </div>
+      </form>
+
+      <h3>Estilos</h3>
       <form id="genres-form">
         <div class="genre-list" id="genre-list"></div>
         <div class="save-row">
@@ -772,7 +799,9 @@
     fillPromo();
     fillReviews(config.reviews || []);
     genres = (config.genres || []).map((g) => ({ ...g }));
-    fillAbout((await api("/api/admin/about-data")).about);
+    const extra = await api("/api/admin/about-data");
+    fillAbout(extra.about);
+    fillRepertoire(extra.repertoire);
     renderGenres();
     const agenda = await api("/api/admin/agenda");
     busy = new Set(agenda.busyDates);
@@ -944,6 +973,36 @@
       });
       config = res;
       setStatus(status, res.aboutAdmin.active ? "✓ Salvo! A história está no site." : "✓ Salvo! A seção está desativada no site.", "ok");
+    } catch (err) {
+      setStatus(status, err.message, "err");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ---------- Seção Repertório ----------
+  function fillRepertoire(rep) {
+    $("rep-active").checked = Boolean(rep?.active);
+    $("rep-eyebrow").value = rep?.eyebrow || "";
+    $("rep-title").value = rep?.title || "";
+    $("rep-lead").value = rep?.lead || "";
+  }
+
+  $("rep-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const status = form.querySelector(".status");
+    const btn = form.querySelector('[type="submit"]');
+    btn.disabled = true;
+    setStatus(status, "Salvando…");
+    try {
+      const res = await api("/api/admin/repertoire", {
+        method: "PUT",
+        body: { active: $("rep-active").checked, eyebrow: $("rep-eyebrow").value, title: $("rep-title").value, lead: $("rep-lead").value },
+      });
+      config = res;
+      fillRepertoire(res.repertoireAdmin);
+      setStatus(status, res.repertoireAdmin.active ? "✓ Salvo! A seção está no site." : "✓ Salvo! A seção está desligada no site.", "ok");
     } catch (err) {
       setStatus(status, err.message, "err");
     } finally {

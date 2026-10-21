@@ -11,6 +11,12 @@
     "buttonText": "",
     "link": ""
   },
+  "repertoire": {
+    "active": false,
+    "eyebrow": "Repertório",
+    "title": "",
+    "lead": "O repertório é montado para o seu público: do romântico ao animado, passando pelos clássicos que todo mundo canta junto."
+  },
   "genres": [
     {
       "icon": "🤠",
