@@ -110,7 +110,8 @@
   .rating { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-bottom: 28px; color: var(--muted); font-weight: 600; }
   .stars { color: var(--gold); letter-spacing: 2px; font-size: 1.1rem; }
   .cta-row { display: flex; flex-wrap: wrap; gap: 12px; }
-  .portrait { position: relative; justify-self: center; width: min(100%, 420px); }
+  .hero-media { justify-self: center; width: min(100%, 420px); display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .portrait { position: relative; width: 100%; }
   .portrait::before {
     content: ""; position: absolute; inset: -14px; border-radius: 50%;
     border: 1px solid rgba(217, 169, 91, .45);
@@ -126,7 +127,8 @@
   }
   @media (max-width: 880px) {
     .hero-grid { grid-template-columns: 1fr; text-align: center; }
-    .portrait { order: -1; width: min(78%, 320px); }
+    .hero-media { order: -1; width: min(100%, 380px); gap: 34px; }
+    .portrait { width: min(84%, 320px); }
     .chips, .cta-row, .rating { justify-content: center; }
     .hero .lead { margin-left: auto; margin-right: auto; }
   }
@@ -305,20 +307,26 @@
   .btn .ic { width: 18px; height: 18px; color: var(--gold); }
   .btn-gold .ic { color: currentColor; }
 
-  /* Faixa de promoção (editada no admin) */
-  .promo {
-    position: relative; padding: 10px 48px; text-align: center; font-weight: 700; font-size: .93rem;
-    color: #1b1207; background: linear-gradient(90deg, #b9853c, var(--gold-2) 50%, #b9853c);
+  /* Oferta especial abaixo da foto (editada no admin) */
+  .offer {
+    position: relative; width: 100%; text-align: left; padding: 18px 20px; border-radius: 16px;
+    border: 1px solid rgba(240, 201, 138, .55);
+    background: linear-gradient(135deg, rgba(217, 169, 91, .24), rgba(217, 169, 91, .06) 60%), var(--card);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, .45);
   }
-  .promo[hidden] { display: none; }
-  .promo a {
-    display: inline-block; margin-left: 10px; padding: 4px 14px; border-radius: 999px; white-space: nowrap;
-    background: #1b1207; color: var(--gold-2); text-decoration: none; font-size: .85rem;
+  .offer[hidden] { display: none; }
+  .offer-tag {
+    display: inline-block; margin-bottom: 10px; padding: 4px 11px; border-radius: 999px;
+    font-size: .72rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+    color: #1b1207; background: var(--gold);
   }
-  .promo-close {
-    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-    width: 34px; height: 34px; border: 0; background: transparent; color: inherit; font-size: 1.3rem; cursor: pointer;
+  .offer p { margin: 0 0 14px; padding-right: 22px; font-weight: 700; font-size: 1.05rem; line-height: 1.4; color: var(--text); }
+  .offer .btn { padding: 10px 18px; font-size: .9rem; }
+  .offer-close {
+    position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 50%;
+    border: 0; background: transparent; color: var(--muted); font-size: 1.3rem; cursor: pointer;
   }
+  .offer-close:hover { color: var(--text); background: rgba(255, 255, 255, .06); }
 
   /* Agenda (calendário público) */
   #agenda { background: radial-gradient(900px 420px at 50% 60%, rgba(217, 169, 91, .08), transparent 70%); }
@@ -407,11 +415,6 @@
   <symbol id="i-mic-s" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="8.5" y="2" width="7" height="12" rx="3.5"/><path d="M8.5 6.5h7M8.5 9.5h7" stroke-width="1"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8"/></g></symbol>
 </svg>
 
-<div class="promo" id="promo" role="region" aria-label="Promoção" hidden>
-  <span id="promo-text"></span><a id="promo-link" href="#" hidden></a>
-  <button class="promo-close" id="promo-close" type="button" aria-label="Fechar promoção">×</button>
-</div>
-
 <header>
   <div class="wrap nav">
     <a class="logo" href="#inicio" aria-label="Letieri Silveira, início">
@@ -448,9 +451,17 @@
           <a class="btn btn-ghost" href="#eventos"><svg class="ic"><use href="#i-pick-plain"/></svg>Ver tipos de evento</a>
         </div>
       </div>
-      <div class="portrait">
-        <img src="assets/letieri.jpg" alt="Letieri Silveira tocando violão" width="800" height="800">
-        <span class="badge-loc">📍 Florianópolis e região</span>
+      <div class="hero-media">
+        <div class="portrait">
+          <img src="assets/letieri.jpg" alt="Letieri Silveira tocando violão" width="800" height="800">
+          <span class="badge-loc">📍 Florianópolis e região</span>
+        </div>
+        <aside class="offer" id="promo" aria-label="Oferta especial" hidden>
+          <span class="offer-tag" id="promo-title">Oferta especial</span>
+          <p id="promo-text"></p>
+          <a class="btn btn-gold" id="promo-link" href="#"></a>
+          <button class="offer-close" id="promo-close" type="button" aria-label="Fechar oferta">×</button>
+        </aside>
       </div>
     </div>
   </section>
@@ -930,14 +941,12 @@
     let dismissed = null;
     try { dismissed = sessionStorage.getItem("promo-fechada"); } catch {}
     if (dismissed === promo.text) return;
+    document.getElementById("promo-title").textContent = promo.title || "Oferta especial";
     document.getElementById("promo-text").textContent = promo.text;
     const link = document.getElementById("promo-link");
-    if (promo.buttonText) {
-      link.textContent = promo.buttonText;
-      link.href = promo.link || waLink(`Olá, Letieri! Vi a promoção no site: "${promo.text}". Quero saber mais!`);
-      if (!promo.link.startsWith("#")) { link.target = "_blank"; link.rel = "noopener"; }
-      link.hidden = false;
-    }
+    link.textContent = promo.buttonText || "Quero aproveitar";
+    link.href = promo.link || waLink(`Olá, Letieri! Vi a oferta especial no site: "${promo.text}". Quero saber mais!`);
+    if (!promo.link || !promo.link.startsWith("#")) { link.target = "_blank"; link.rel = "noopener"; }
     bar.hidden = false;
     document.getElementById("promo-close").addEventListener("click", () => {
       bar.hidden = true;

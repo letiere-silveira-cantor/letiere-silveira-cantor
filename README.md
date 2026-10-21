@@ -8,19 +8,22 @@ Site de agendamentos com painel admin.
   - **Dashboard:** shows do mês, faturamento fechado, ticket médio e comparativo com o mês anterior.
   - **Slogan:** a frase do topo do site.
   - **Agenda:** marca e libera as datas ocupadas.
-  - **Promoção:** faixa no topo da página.
+  - **Oferta especial:** cartão configurável que aparece logo abaixo da foto.
   - **Vídeos:** envio de arquivo ou link do YouTube.
 
 ## Publicar na Vercel
 
-1. Em [vercel.com/new](https://vercel.com/new), importe este repositório do GitHub. Não precisa mudar nada nas configurações de build.
+[![Deploy na Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fletiere-silveira-cantor%2Fletiere-silveira-cantor&env=ADMIN_PASSWORD&envDescription=Senha%20do%20painel%20admin)
+
+1. Em [vercel.com/new](https://vercel.com/new), importe este repositório do GitHub. Deixe **Framework Preset = Other** e não mude os comandos de build: o `vercel.json` já configura tudo.
 2. Em **Settings → Environment Variables**, crie `ADMIN_PASSWORD` com a senha do painel.
 3. Em **Storage**:
-   - **Upstash Redis** (Marketplace): conecte ao projeto. Guarda o slogan, a agenda, a promoção e os shows.
+   - **Upstash Redis** (Marketplace): conecte ao projeto. Guarda o slogan, a agenda, a oferta especial e os shows.
      As variáveis `KV_REST_API_URL` e `KV_REST_API_TOKEN` são criadas automaticamente.
    - **Blob**: crie um store e conecte ao projeto. Guarda os vídeos enviados.
      A variável `BLOB_READ_WRITE_TOKEN` é criada automaticamente.
 4. Faça um novo deploy (**Deployments → Redeploy**) para as variáveis valerem.
+5. Acesse `https://SEU-PROJETO.vercel.app/admin` e entre com a senha.
 
 Sem o Redis o site abre normalmente com o conteúdo padrão, mas o admin não consegue salvar.
 Sem o Blob, o admin aceita apenas vídeos do YouTube.

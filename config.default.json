@@ -6,6 +6,7 @@
   },
   "promo": {
     "active": false,
+    "title": "Oferta especial",
     "text": "",
     "buttonText": "",
     "link": ""

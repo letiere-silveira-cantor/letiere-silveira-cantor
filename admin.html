@@ -105,11 +105,25 @@
   .preview h1 { font-size: clamp(1.6rem, 3.4vw, 2.3rem); }
   .preview h1 .hl { color: var(--gold); font-style: italic; }
   .preview p { color: var(--muted); margin: 0; }
-  .promo-preview {
-    padding: 10px 16px; text-align: center; font-weight: 700; font-size: .92rem; border-radius: 10px;
-    color: #1b1207; background: linear-gradient(90deg, #b9853c, var(--gold-2) 50%, #b9853c);
+  .offer {
+    position: relative; width: 100%; text-align: left; padding: 18px 20px; border-radius: 16px;
+    border: 1px solid rgba(240, 201, 138, .55);
+    background: linear-gradient(135deg, rgba(217, 169, 91, .24), rgba(217, 169, 91, .06) 60%), var(--card);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, .45);
   }
-  .promo-preview span.btnp { display: inline-block; margin-left: 10px; padding: 3px 12px; border-radius: 999px; background: #1b1207; color: var(--gold-2); font-size: .82rem; }
+  .offer[hidden] { display: none; }
+  .offer-tag {
+    display: inline-block; margin-bottom: 10px; padding: 4px 11px; border-radius: 999px;
+    font-size: .72rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+    color: #1b1207; background: var(--gold);
+  }
+  .offer p { margin: 0 0 14px; padding-right: 22px; font-weight: 700; font-size: 1.05rem; line-height: 1.4; color: var(--text); }
+  .offer .btn { padding: 10px 18px; font-size: .9rem; }
+  .offer-close {
+    position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 50%;
+    border: 0; background: transparent; color: var(--muted); font-size: 1.3rem; cursor: pointer;
+  }
+  .offer-close:hover { color: var(--text); background: rgba(255, 255, 255, .06); }
   .promo-off { color: var(--muted); text-align: center; padding: 10px; }
 
   .switch { display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 18px; font-weight: 700; }
@@ -287,7 +301,7 @@
     <button class="tab" role="tab" aria-selected="true" aria-controls="p-dash" id="t-dash">📊 Dashboard</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-slogan" id="t-slogan" tabindex="-1">✍️ Slogan</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-agenda" id="t-agenda" tabindex="-1">📅 Agenda</button>
-    <button class="tab" role="tab" aria-selected="false" aria-controls="p-promo" id="t-promo" tabindex="-1">📣 Promoção</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-promo" id="t-promo" tabindex="-1">🎁 Oferta especial</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-videos" id="t-videos" tabindex="-1">🎬 Vídeos</button>
   </nav>
 
@@ -430,17 +444,21 @@
 
     <!-- Promoção -->
     <section class="panel" role="tabpanel" id="p-promo" aria-labelledby="t-promo" hidden>
-      <h2>Promoção no topo da página</h2>
-      <p class="hint">Uma faixa dourada que aparece acima de tudo no site. Se deixar o link vazio, o botão abre o WhatsApp com a promoção.</p>
+      <h2>Oferta especial</h2>
+      <p class="hint">Um cartão dourado que aparece logo abaixo da foto do Letieri, no topo do site. Se deixar o link vazio, o botão abre o WhatsApp com a oferta.</p>
       <div class="cols">
         <form id="promo-form">
-          <label class="switch"><input type="checkbox" id="p-active"> Exibir promoção no site</label>
+          <label class="switch"><input type="checkbox" id="p-active"> Exibir oferta no site</label>
           <div class="field">
-            <label for="p-text">Texto da promoção</label>
+            <label for="p-title">Título do selo</label>
+            <input type="text" id="p-title" maxlength="40" placeholder="Oferta especial">
+          </div>
+          <div class="field">
+            <label for="p-text">Texto da oferta</label>
             <input type="text" id="p-text" maxlength="160" placeholder="Ex.: 🎉 Casamentos em dezembro com 10% de desconto!">
           </div>
           <div class="field">
-            <label for="p-btn">Texto do botão <small>(opcional)</small></label>
+            <label for="p-btn">Texto do botão <small>(padrão: Quero aproveitar)</small></label>
             <input type="text" id="p-btn" maxlength="40" placeholder="Ex.: Quero aproveitar">
           </div>
           <div class="field">
@@ -448,7 +466,7 @@
             <input type="text" id="p-link" maxlength="500" placeholder="Vazio = abre o WhatsApp">
           </div>
           <div class="save-row">
-            <button class="btn btn-gold" type="submit">Salvar promoção</button>
+            <button class="btn btn-gold" type="submit">Salvar oferta</button>
             <span class="status" role="status"></span>
           </div>
         </form>
@@ -637,34 +655,37 @@
     if (!$("p-active").checked || !$("p-text").value.trim()) {
       const off = document.createElement("div");
       off.className = "promo-off";
-      off.textContent = $("p-active").checked ? "Escreva o texto da promoção." : "Promoção desligada: nada aparece no site.";
+      off.textContent = $("p-active").checked ? "Escreva o texto da oferta." : "Oferta desligada: nada aparece abaixo da foto.";
       pv.append(off);
       return;
     }
-    const bar = document.createElement("div");
-    bar.className = "promo-preview";
-    bar.textContent = $("p-text").value;
-    if ($("p-btn").value.trim()) {
-      const b = document.createElement("span");
-      b.className = "btnp";
-      b.textContent = $("p-btn").value;
-      bar.append(b);
-    }
-    pv.append(bar);
+    const card = document.createElement("div");
+    card.className = "offer";
+    const tag = document.createElement("span");
+    tag.className = "offer-tag";
+    tag.textContent = $("p-title").value.trim() || "Oferta especial";
+    const text = document.createElement("p");
+    text.textContent = $("p-text").value;
+    const btn = document.createElement("span");
+    btn.className = "btn btn-gold";
+    btn.textContent = $("p-btn").value.trim() || "Quero aproveitar";
+    card.append(tag, text, btn);
+    pv.append(card);
   }
   function fillPromo() {
     $("p-active").checked = config.promo.active;
+    $("p-title").value = config.promo.title || "";
     $("p-text").value = config.promo.text;
     $("p-btn").value = config.promo.buttonText;
     $("p-link").value = config.promo.link;
     previewPromo();
   }
-  ["p-active", "p-text", "p-btn"].forEach((id) => $(id).addEventListener("input", previewPromo));
+  ["p-active", "p-title", "p-text", "p-btn"].forEach((id) => $(id).addEventListener("input", previewPromo));
 
   $("promo-form").addEventListener("submit", (e) => {
     e.preventDefault();
     saveSettings(e.target, {
-      promo: { active: $("p-active").checked, text: $("p-text").value, buttonText: $("p-btn").value, link: $("p-link").value },
+      promo: { active: $("p-active").checked, title: $("p-title").value, text: $("p-text").value, buttonText: $("p-btn").value, link: $("p-link").value },
     });
   });
 

@@ -8,7 +8,7 @@
     "build:blob-client": "esbuild assets/vendor/blob-client-entry.js --bundle --format=esm --platform=browser --minify --target=es2020 --legal-comments=none --outfile=assets/vendor/vercel-blob-client.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": "22.x"
   },
   "dependencies": {
     "@vercel/blob": "2.8.0"
