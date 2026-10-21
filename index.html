@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Letieri Silveira · Músico e Cantor</title>
+<meta name="description" content="Letieri Silveira, músico e cantor em Florianópolis e região. Sertanejo, MPB, Reggae e Rock para casamentos, aniversários, bares e casas de show. Agende pelo WhatsApp.">
+<meta property="og:title" content="Letieri Silveira · Músico e Cantor">
+<meta property="og:description" content="Sertanejo, MPB, Reggae e Rock ao vivo em Florianópolis e região. Agende seu evento pelo WhatsApp.">
+<meta property="og:image" content="assets/letieri.jpg">
+<meta name="theme-color" content="#0f0d0b">
+<link rel="icon" href="assets/favicon.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0d0b;
+    --bg-2: #171310;
+    --card: #1d1814;
+    --line: #3a3027;
+    --text: #f3ece3;
+    --muted: #b8aa99;
+    --gold: #d9a95b;
+    --gold-2: #f0c98a;
+    --wa: #25d366;
+    --wa-dark: #128c4a;
+    --radius: 18px;
+    --max: 1120px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 "Manrope", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+  h1, h2, h3 { font-family: "Fraunces", Georgia, serif; line-height: 1.15; margin: 0 0 .5em; }
+  h2 { font-size: clamp(1.9rem, 4vw, 2.6rem); }
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 20px; }
+  section { padding: 88px 0; }
+  .eyebrow {
+    color: var(--gold); font-weight: 700; letter-spacing: .16em;
+    text-transform: uppercase; font-size: .78rem; margin-bottom: 10px;
+  }
+  .lead { color: var(--muted); max-width: 640px; font-size: 1.08rem; }
+
+  /* Botões */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 14px 22px; border-radius: 999px; font-weight: 700; font-size: .98rem;
+    text-decoration: none; border: 1px solid transparent; cursor: pointer;
+    transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    font-family: inherit;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn svg { width: 20px; height: 20px; flex: none; }
+  .btn-wa { background: var(--wa); color: #06210f; }
+  .btn-wa:hover { background: #3ee07c; }
+  .btn-gold { background: var(--gold); color: #1b1207; }
+  .btn-gold:hover { background: var(--gold-2); }
+  .btn-ghost { border-color: var(--line); color: var(--text); background: transparent; }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--gold-2); }
+
+  /* Cabeçalho */
+  header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(15, 13, 11, .86); backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(58, 48, 39, .6);
+  }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 68px; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: "Fraunces", serif; font-size: 1.2rem; font-weight: 700; }
+  .brand img { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--gold); }
+  .nav ul { display: flex; gap: 26px; list-style: none; margin: 0; padding: 0; }
+  .nav ul a { text-decoration: none; color: var(--muted); font-weight: 600; font-size: .94rem; }
+  .nav ul a:hover { color: var(--gold-2); }
+  .nav .btn { padding: 10px 18px; font-size: .9rem; }
+  @media (max-width: 880px) { .nav ul { display: none; } }
+
+  /* Hero */
+  .hero {
+    padding: 72px 0 88px;
+    background:
+      radial-gradient(800px 480px at 78% 30%, rgba(217, 169, 91, .18), transparent 60%),
+      radial-gradient(600px 400px at 10% 90%, rgba(217, 169, 91, .07), transparent 60%);
+  }
+  .hero-grid { display: grid; grid-template-columns: 1.15fr .85fr; align-items: center; gap: 48px; }
+  .hero h1 { font-size: clamp(2.6rem, 7vw, 4.6rem); margin-bottom: 12px; }
+  .hero h1 span { color: var(--gold); }
+  .hero .role { font-size: 1.15rem; color: var(--muted); margin: 0 0 22px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; }
+  .chip {
+    border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px;
+    font-size: .85rem; font-weight: 700; letter-spacing: .06em; color: var(--gold-2);
+    background: rgba(217, 169, 91, .06);
+  }
+  .rating { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-bottom: 28px; color: var(--muted); font-weight: 600; }
+  .stars { color: var(--gold); letter-spacing: 2px; font-size: 1.1rem; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; }
+  .portrait { position: relative; justify-self: center; width: min(100%, 420px); }
+  .portrait::before {
+    content: ""; position: absolute; inset: -14px; border-radius: 50%;
+    border: 1px solid rgba(217, 169, 91, .45);
+  }
+  .portrait img {
+    width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: 50%;
+    border: 3px solid #e9d7c1; box-shadow: 0 30px 80px rgba(0, 0, 0, .6), 0 0 90px rgba(217, 169, 91, .15);
+  }
+  .badge-loc {
+    position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%);
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: 8px 16px; font-size: .85rem; font-weight: 700; white-space: nowrap;
+  }
+  @media (max-width: 880px) {
+    .hero-grid { grid-template-columns: 1fr; text-align: center; }
+    .portrait { order: -1; width: min(78%, 320px); }
+    .chips, .cta-row, .rating { justify-content: center; }
+    .hero .lead { margin-left: auto; margin-right: auto; }
+  }
+
+  /* Ações rápidas */
+  .quick { padding: 0 0 40px; margin-top: -24px; }
+  .quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .quick-card {
+    display: flex; flex-direction: column; gap: 6px; text-decoration: none;
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 22px; transition: border-color .15s ease, transform .15s ease;
+  }
+  .quick-card:hover { border-color: var(--gold); transform: translateY(-3px); }
+  .quick-card .ico { font-size: 1.6rem; }
+  .quick-card strong { font-size: 1.08rem; }
+  .quick-card span { color: var(--muted); font-size: .93rem; }
+  .quick-card em { color: var(--wa); font-style: normal; font-weight: 700; font-size: .9rem; margin-top: 6px; }
+  @media (max-width: 760px) { .quick-grid { grid-template-columns: 1fr; } }
+
+  /* Estilos */
+  .genres { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 36px; }
+  .genre {
+    background: linear-gradient(180deg, var(--card), var(--bg-2));
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 26px 22px;
+  }
+  .genre .ico { font-size: 2rem; margin-bottom: 12px; }
+  .genre h3 { font-size: 1.35rem; color: var(--gold-2); }
+  .genre p { color: var(--muted); margin: 0; font-size: .95rem; }
+  @media (max-width: 900px) { .genres { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .genres { grid-template-columns: 1fr; } }
+
+  /* Eventos (abas) */
+  #eventos { background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 32px 0 24px; }
+  .tab {
+    font: inherit; font-weight: 700; cursor: pointer; color: var(--muted);
+    background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 11px 20px;
+  }
+  .tab:hover { color: var(--text); border-color: var(--gold); }
+  .tab[aria-selected="true"] { background: var(--gold); border-color: var(--gold); color: #1b1207; }
+  .panel {
+    display: grid; grid-template-columns: 1.1fr .9fr; gap: 32px;
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 34px;
+  }
+  .panel[hidden] { display: none; }
+  .panel h3 { font-size: 1.8rem; }
+  .panel p { color: var(--muted); }
+  .panel ul { list-style: none; padding: 0; margin: 0 0 24px; display: grid; gap: 10px; }
+  .panel li { display: flex; gap: 10px; }
+  .panel li::before { content: "♪"; color: var(--gold); font-weight: 700; }
+  .panel-side {
+    border-left: 1px solid var(--line); padding-left: 32px;
+    display: flex; flex-direction: column; justify-content: center; gap: 12px;
+  }
+  .panel-side .big { font-size: 3rem; }
+  @media (max-width: 800px) {
+    .panel { grid-template-columns: 1fr; padding: 24px; }
+    .panel-side { border-left: 0; border-top: 1px solid var(--line); padding: 24px 0 0; }
+  }
+
+  /* Onde toca */
+  .venues { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 36px; }
+  .venue {
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 34px 26px; text-align: center;
+    background: radial-gradient(400px 200px at 50% 0%, rgba(217, 169, 91, .12), transparent 70%), var(--card);
+  }
+  .venue strong { display: block; font-family: "Fraunces", serif; font-size: clamp(1.7rem, 4vw, 2.3rem); color: var(--gold-2); }
+  .venue span { color: var(--muted); font-size: .92rem; }
+  .venues-note { color: var(--muted); text-align: center; margin-top: 20px; }
+  .proof { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 44px; }
+  .proof div { border-top: 2px solid var(--gold); padding-top: 14px; }
+  .proof strong { display: block; font-size: 1.05rem; }
+  .proof span { color: var(--muted); font-size: .93rem; }
+  @media (max-width: 760px) { .venues, .proof { grid-template-columns: 1fr; } }
+
+  /* Agendamento */
+  #agendar { background: var(--bg-2); border-top: 1px solid var(--line); }
+  .booking { display: grid; grid-template-columns: .8fr 1.2fr; gap: 40px; align-items: start; }
+  .steps { list-style: none; padding: 0; margin: 28px 0; display: grid; gap: 16px; counter-reset: s; }
+  .steps li { display: flex; gap: 14px; color: var(--muted); }
+  .steps li::before {
+    counter-increment: s; content: counter(s); flex: none;
+    width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+    background: rgba(217, 169, 91, .15); color: var(--gold-2); font-weight: 700; font-size: .9rem;
+  }
+  .steps b { color: var(--text); }
+  form {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field.full { grid-column: 1 / -1; }
+  label, legend { font-weight: 700; font-size: .88rem; }
+  label small { color: var(--muted); font-weight: 500; }
+  input, select, textarea {
+    font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line);
+    border-radius: 12px; padding: 12px 14px; width: 100%;
+  }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--gold); outline-offset: 1px; border-color: transparent; }
+  input[type="date"], input[type="time"] { color-scheme: dark; }
+  textarea { min-height: 96px; resize: vertical; }
+  fieldset { border: 0; margin: 0; padding: 0; }
+  .checks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .checks label {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600;
+    border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; font-size: .9rem;
+  }
+  .checks input { width: auto; accent-color: var(--gold); }
+  .form-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+  .form-actions .btn-wa { flex: 1 1 100%; }
+  .form-actions .btn-ghost { flex: 1 1 200px; }
+  .form-note { grid-column: 1 / -1; color: var(--muted); font-size: .85rem; margin: 0; }
+  @media (max-width: 880px) { .booking { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) { form { grid-template-columns: 1fr; padding: 20px; } }
+
+  /* Música */
+  .listen {
+    display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 30px;
+    background: linear-gradient(120deg, rgba(217, 169, 91, .14), transparent 60%), var(--card);
+  }
+  .listen h3 { font-size: 1.6rem; margin: 0; }
+  .listen p { margin: 4px 0 0; color: var(--muted); }
+
+  footer { border-top: 1px solid var(--line); padding: 36px 0 110px; color: var(--muted); font-size: .92rem; }
+  .foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .foot a { color: var(--gold-2); text-decoration: none; }
+
+  /* WhatsApp flutuante */
+  .wa-float {
+    position: fixed; right: 18px; bottom: 18px; z-index: 60;
+    width: 60px; height: 60px; border-radius: 50%; background: var(--wa); color: #fff;
+    display: grid; place-items: center; box-shadow: 0 10px 30px rgba(0, 0, 0, .45);
+    transition: transform .15s ease;
+  }
+  .wa-float:hover { transform: scale(1.07); }
+  .wa-float svg { width: 32px; height: 32px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-wa" viewBox="0 0 24 24"><path fill="currentColor" d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35zM12.05 21.5h-.01a9.4 9.4 0 0 1-4.8-1.31l-.34-.2-3.57.93.95-3.48-.22-.36a9.43 9.43 0 0 1-1.45-5.03c0-5.2 4.24-9.44 9.45-9.44a9.4 9.4 0 0 1 6.68 2.77 9.38 9.38 0 0 1 2.76 6.68c0 5.21-4.24 9.44-9.45 9.44zm8.04-17.48A11.3 11.3 0 0 0 12.05.68C5.78.68.68 5.78.68 12.05c0 2 .52 3.96 1.52 5.69L.58 23.62l6.02-1.58a11.33 11.33 0 0 0 5.44 1.39h.01c6.27 0 11.37-5.1 11.37-11.37 0-3.04-1.18-5.9-3.33-8.04z"/></symbol>
+</svg>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#inicio"><img src="assets/favicon.jpg" alt="">Letieri Silveira</a>
+    <ul>
+      <li><a href="#estilos">Repertório</a></li>
+      <li><a href="#eventos">Eventos</a></li>
+      <li><a href="#onde-toca">Onde toca</a></li>
+      <li><a href="#agendar">Agendar</a></li>
+    </ul>
+    <a class="btn btn-wa" href="#agendar"><svg><use href="#i-wa"/></svg>Agendar</a>
+  </div>
+</header>
+
+<main>
+  <!-- Hero -->
+  <section class="hero" id="inicio">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">Músico &amp; Cantor · Ao vivo</p>
+        <h1>Letieri <span>Silveira</span></h1>
+        <p class="role">Voz e violão para o seu evento em Florianópolis e região.</p>
+        <div class="chips" aria-label="Estilos musicais">
+          <span class="chip">SERTANEJO</span><span class="chip">MPB</span><span class="chip">REGGAE</span><span class="chip">ROCK</span>
+        </div>
+        <div class="rating"><span class="stars" aria-hidden="true">★★★★★</span> Cantor bem avaliado · Coco Bambu e Don Pierro</div>
+        <div class="cta-row">
+          <a class="btn btn-wa" data-wa="agendar" href="#"><svg><use href="#i-wa"/></svg>Agendar pelo WhatsApp</a>
+          <a class="btn btn-ghost" href="#eventos">Ver tipos de evento</a>
+        </div>
+      </div>
+      <div class="portrait">
+        <img src="assets/letieri.jpg" alt="Letieri Silveira tocando violão" width="800" height="800">
+        <span class="badge-loc">📍 Florianópolis e região</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ações rápidas -->
+  <div class="quick">
+    <div class="wrap quick-grid">
+      <a class="quick-card" data-wa="precos" href="#">
+        <span class="ico" aria-hidden="true">💰</span>
+        <strong>Preços e valores</strong>
+        <span>Receba um orçamento de acordo com o tipo de evento, duração e local.</span>
+        <em>Consultar valores →</em>
+      </a>
+      <a class="quick-card" data-wa="agenda" href="#">
+        <span class="ico" aria-hidden="true">📅</span>
+        <strong>Datas e agenda disponível</strong>
+        <span>Confira se a data do seu evento ainda está livre na agenda.</span>
+        <em>Ver disponibilidade →</em>
+      </a>
+      <a class="quick-card" href="#agendar">
+        <span class="ico" aria-hidden="true">🎤</span>
+        <strong>Agendar um show</strong>
+        <span>Preencha os detalhes e envie tudo pronto direto no WhatsApp.</span>
+        <em>Fazer agendamento →</em>
+      </a>
+    </div>
+  </div>
+
+  <!-- Repertório -->
+  <section id="estilos">
+    <div class="wrap">
+      <p class="eyebrow">Repertório</p>
+      <h2>Quatro estilos, um show sob medida</h2>
+      <p class="lead">O repertório é montado para o seu público: do romântico ao animado, passando pelos clássicos que todo mundo canta junto.</p>
+      <div class="genres">
+        <article class="genre">
+          <div class="ico" aria-hidden="true">🤠</div>
+          <h3>Sertanejo</h3>
+          <p>Do sertanejo raiz ao universitário: modões, sofrência e os sucessos do momento.</p>
+        </article>
+        <article class="genre">
+          <div class="ico" aria-hidden="true">🇧🇷</div>
+          <h3>MPB</h3>
+          <p>Clássicos da música popular brasileira em versões voz e violão, ideais para momentos especiais.</p>
+        </article>
+        <article class="genre">
+          <div class="ico" aria-hidden="true">🌴</div>
+          <h3>Reggae</h3>
+          <p>Clima leve e praiano, a cara de Florianópolis, para fins de tarde e festas ao ar livre.</p>
+        </article>
+        <article class="genre">
+          <div class="ico" aria-hidden="true">🎸</div>
+          <h3>Rock</h3>
+          <p>Rock nacional e internacional em versões acústicas que levantam qualquer público.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Eventos -->
+  <section id="eventos">
+    <div class="wrap">
+      <p class="eyebrow">Eventos em geral 🥂</p>
+      <h2>Música ao vivo para cada ocasião</h2>
+      <p class="lead">Escolha o tipo de evento para ver como funciona e pedir um orçamento.</p>
+
+      <div class="tabs" role="tablist" aria-label="Tipos de evento">
+        <button class="tab" role="tab" id="tab-casamentos" aria-controls="p-casamentos" aria-selected="true">💍 Casamentos</button>
+        <button class="tab" role="tab" id="tab-aniversarios" aria-controls="p-aniversarios" aria-selected="false" tabindex="-1">🎂 Aniversários</button>
+        <button class="tab" role="tab" id="tab-bares" aria-controls="p-bares" aria-selected="false" tabindex="-1">🍻 Bares e restaurantes</button>
+        <button class="tab" role="tab" id="tab-casas" aria-controls="p-casas" aria-selected="false" tabindex="-1">🎶 Casas de show</button>
+      </div>
+
+      <div class="panel" role="tabpanel" id="p-casamentos" aria-labelledby="tab-casamentos">
+        <div>
+          <h3>Casamentos</h3>
+          <p>Trilha sonora ao vivo para o dia mais importante: da entrada da noiva à festa.</p>
+          <ul>
+            <li>Cerimônia: entrada dos padrinhos, noiva, alianças e saída</li>
+            <li>Recepção e coquetel com repertório leve</li>
+            <li>Música especial escolhida pelo casal</li>
+            <li>Repertório combinado com antecedência</li>
+          </ul>
+          <a class="btn btn-wa" data-wa="evento" data-evento="Casamento" href="#"><svg><use href="#i-wa"/></svg>Orçamento para casamento</a>
+        </div>
+        <div class="panel-side">
+          <span class="big" aria-hidden="true">💍</span>
+          <strong>Ideal para</strong>
+          <span>Cerimônias religiosas e ao ar livre, casamentos na praia, mini weddings e bodas.</span>
+        </div>
+      </div>
+
+      <div class="panel" role="tabpanel" id="p-aniversarios" aria-labelledby="tab-aniversarios" hidden>
+        <div>
+          <h3>Aniversários</h3>
+          <p>Uma festa com música ao vivo fica na memória. Repertório pensado para a idade e o estilo do aniversariante.</p>
+          <ul>
+            <li>Festas em casa, salões, sítios e espaços de eventos</li>
+            <li>Mistura de Sertanejo, MPB, Reggae e Rock</li>
+            <li>Pedidos de músicas dos convidados</li>
+            <li>Parabéns ao vivo no violão</li>
+          </ul>
+          <a class="btn btn-wa" data-wa="evento" data-evento="Aniversário" href="#"><svg><use href="#i-wa"/></svg>Orçamento para aniversário</a>
+        </div>
+        <div class="panel-side">
+          <span class="big" aria-hidden="true">🎂</span>
+          <strong>Ideal para</strong>
+          <span>15 anos, 30, 40, 50 anos, festas surpresa e confraternizações em família.</span>
+        </div>
+      </div>
+
+      <div class="panel" role="tabpanel" id="p-bares" aria-labelledby="tab-bares" hidden>
+        <div>
+          <h3>Bares e restaurantes</h3>
+          <p>Experiência de quem já toca em casas de renome como Coco Bambu e Don Pierro: volume certo, repertório que acompanha o clima da casa.</p>
+          <ul>
+            <li>Apresentações fixas semanais ou datas avulsas</li>
+            <li>Happy hour, jantar e fins de semana</li>
+            <li>Repertório adaptado ao público da casa</li>
+            <li>Postura profissional e pontualidade</li>
+          </ul>
+          <a class="btn btn-wa" data-wa="evento" data-evento="Bar / Restaurante" href="#"><svg><use href="#i-wa"/></svg>Agendar para meu bar</a>
+        </div>
+        <div class="panel-side">
+          <span class="big" aria-hidden="true">🍻</span>
+          <strong>Ideal para</strong>
+          <span>Bares, restaurantes, pubs, beach clubs e quiosques.</span>
+        </div>
+      </div>
+
+      <div class="panel" role="tabpanel" id="p-casas" aria-labelledby="tab-casas" hidden>
+        <div>
+          <h3>Casas de show</h3>
+          <p>Show completo para animar o público, com sequências dançantes e os sucessos que todo mundo canta.</p>
+          <ul>
+            <li>Abertura de shows e noites temáticas</li>
+            <li>Sets de Sertanejo, Reggae e Rock</li>
+            <li>Duração combinada com a casa</li>
+            <li>Muita interação com o público</li>
+          </ul>
+          <a class="btn btn-wa" data-wa="evento" data-evento="Casa de show" href="#"><svg><use href="#i-wa"/></svg>Agendar para casa de show</a>
+        </div>
+        <div class="panel-side">
+          <span class="big" aria-hidden="true">🎶</span>
+          <strong>Também atende</strong>
+          <span>Eventos corporativos, formaturas, confraternizações de fim de ano e eventos em geral.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Onde toca -->
+  <section id="onde-toca">
+    <div class="wrap">
+      <p class="eyebrow">Onde toca</p>
+      <h2>Presença em casas de renome</h2>
+      <p class="lead">Cantor bem avaliado, com apresentações em casas conhecidas de Florianópolis e região.</p>
+      <div class="venues">
+        <div class="venue"><strong>Coco Bambu</strong><span>Restaurante</span></div>
+        <div class="venue"><strong>Don Pierro</strong><span>Restaurante</span></div>
+      </div>
+      <p class="venues-note">e outros bares, restaurantes e eventos em Florianópolis e região.</p>
+      <div class="proof">
+        <div><strong>★★★★★ Bem avaliado</strong><span>Reconhecido por clientes e pelas casas onde se apresenta.</span></div>
+        <div><strong>Repertório versátil</strong><span>Sertanejo, MPB, Reggae e Rock no mesmo show.</span></div>
+        <div><strong>Atendimento direto</strong><span>Você fala com o próprio artista pelo WhatsApp.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Agendamento -->
+  <section id="agendar">
+    <div class="wrap booking">
+      <div>
+        <p class="eyebrow">Agendamento</p>
+        <h2>Agende o seu evento</h2>
+        <p class="lead">Preencha os dados e a mensagem chega pronta no WhatsApp do Letieri.</p>
+        <ol class="steps">
+          <li><span><b>Preencha</b> o tipo de evento, data e local.</span></li>
+          <li><span><b>Envie</b> pelo WhatsApp com um toque.</span></li>
+          <li><span><b>Receba</b> a confirmação da data e o valor.</span></li>
+        </ol>
+        <a class="btn btn-ghost" data-wa="agendar" href="#"><svg><use href="#i-wa"/></svg>Prefiro só conversar</a>
+      </div>
+
+      <form id="booking-form" novalidate>
+        <div class="field">
+          <label for="f-nome">Seu nome</label>
+          <input id="f-nome" name="nome" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label for="f-tipo">Tipo de evento</label>
+          <select id="f-tipo" name="tipo" required>
+            <option value="">Selecione…</option>
+            <option>Casamento</option>
+            <option>Aniversário</option>
+            <option>Bar / Restaurante</option>
+            <option>Casa de show</option>
+            <option>Evento corporativo</option>
+            <option>Formatura</option>
+            <option>Outro evento</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-data">Data do evento</label>
+          <input id="f-data" name="data" type="date" required>
+        </div>
+        <div class="field">
+          <label for="f-hora">Horário <small>(aproximado)</small></label>
+          <input id="f-hora" name="hora" type="time">
+        </div>
+        <div class="field">
+          <label for="f-local">Cidade / local</label>
+          <input id="f-local" name="local" placeholder="Ex.: Jurerê, Florianópolis">
+        </div>
+        <div class="field">
+          <label for="f-duracao">Duração do show</label>
+          <select id="f-duracao" name="duracao">
+            <option value="">A combinar</option>
+            <option>1 hora</option>
+            <option>2 horas</option>
+            <option>3 horas</option>
+            <option>4 horas ou mais</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label for="f-convidados">Número de convidados <small>(estimado)</small></label>
+          <input id="f-convidados" name="convidados" type="number" min="1" inputmode="numeric">
+        </div>
+        <fieldset class="field full">
+          <legend>Estilos que você quer no repertório</legend>
+          <div class="checks">
+            <label><input type="checkbox" name="estilos" value="Sertanejo">Sertanejo</label>
+            <label><input type="checkbox" name="estilos" value="MPB">MPB</label>
+            <label><input type="checkbox" name="estilos" value="Reggae">Reggae</label>
+            <label><input type="checkbox" name="estilos" value="Rock">Rock</label>
+          </div>
+        </fieldset>
+        <div class="field full">
+          <label for="f-msg">Mensagem <small>(opcional)</small></label>
+          <textarea id="f-msg" name="mensagem" placeholder="Conte um pouco sobre o evento, músicas especiais…"></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-wa" type="submit"><svg><use href="#i-wa"/></svg>Enviar agendamento pelo WhatsApp</button>
+          <button class="btn btn-ghost" type="button" data-form-action="precos">💰 Só quero saber o valor</button>
+          <button class="btn btn-ghost" type="button" data-form-action="agenda">📅 Só verificar a data</button>
+        </div>
+        <p class="form-note" id="form-note" role="status">Preencha pelo menos nome, tipo de evento e data.</p>
+      </form>
+    </div>
+  </section>
+
+  <!-- Música -->
+  <section>
+    <div class="wrap">
+      <div class="listen">
+        <div>
+          <p class="eyebrow">Ouça</p>
+          <h3>Planejei (Ao Vivo)</h3>
+          <p>Confira uma amostra do som do Letieri ao vivo.</p>
+        </div>
+        <a class="btn btn-gold" href="https://www.youtube.com/results?search_query=Letieri+Silveira+Planejei+Ao+Vivo" target="_blank" rel="noopener">▶ Assistir</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <span>© <span id="year"></span> Letieri Silveira · Músico e Cantor · Florianópolis e região</span>
+    <a data-wa="agendar" href="#">WhatsApp (48) 99696-7255</a>
+  </div>
+</footer>
+
+<a class="wa-float" data-wa="agendar" href="#" aria-label="Falar no WhatsApp"><svg><use href="#i-wa"/></svg></a>
+
+<script>
+  const WHATSAPP = "5548996967255";
+  const waLink = (text) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`;
+
+  const messages = {
+    agendar: "Olá, Letieri! Vi seu site e gostaria de fazer um agendamento. 🎶",
+    precos: "Olá, Letieri! Gostaria de saber mais sobre preços e valores para um evento. 💰",
+    agenda: "Olá, Letieri! Gostaria de saber sobre datas e agenda disponível. 📅",
+    evento: (tipo) => `Olá, Letieri! Gostaria de um orçamento para: ${tipo}. Podemos conversar? 🎶`,
+  };
+
+  // Links diretos para o WhatsApp
+  document.querySelectorAll("[data-wa]").forEach((el) => {
+    const key = el.dataset.wa;
+    const text = key === "evento" ? messages.evento(el.dataset.evento) : messages[key];
+    el.href = waLink(text);
+    el.target = "_blank";
+    el.rel = "noopener";
+  });
+
+  // Abas de eventos
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  const select = (tab) => {
+    tabs.forEach((t) => {
+      const on = t === tab;
+      t.setAttribute("aria-selected", on);
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+    });
+  };
+  tabs.forEach((tab, i) => {
+    tab.addEventListener("click", () => select(tab));
+    tab.addEventListener("keydown", (e) => {
+      const dir = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+      if (!dir) return;
+      const next = tabs[(i + dir + tabs.length) % tabs.length];
+      select(next);
+      next.focus();
+    });
+  });
+
+  // Formulário de agendamento
+  const form = document.getElementById("booking-form");
+  const note = document.getElementById("form-note");
+  const dateInput = document.getElementById("f-data");
+  dateInput.min = new Date().toISOString().slice(0, 10);
+
+  const formatDate = (iso) => {
+    if (!iso) return "";
+    const [y, m, d] = iso.split("-");
+    const weekday = new Date(+y, m - 1, +d).toLocaleDateString("pt-BR", { weekday: "long" });
+    return `${d}/${m}/${y} (${weekday})`;
+  };
+
+  const buildMessage = (intent) => {
+    const f = new FormData(form);
+    const estilos = f.getAll("estilos");
+    const titles = {
+      agendar: "Olá, Letieri! Gostaria de fazer um agendamento. 🎶",
+      precos: "Olá, Letieri! Gostaria de saber o valor para o meu evento. 💰",
+      agenda: "Olá, Letieri! Gostaria de verificar se esta data está disponível. 📅",
+    };
+    const lines = [
+      titles[intent],
+      "",
+      ["👤 Nome", f.get("nome")],
+      ["🎉 Evento", f.get("tipo")],
+      ["📅 Data", formatDate(f.get("data"))],
+      ["⏰ Horário", f.get("hora")],
+      ["📍 Local", f.get("local")],
+      ["⏱️ Duração", f.get("duracao")],
+      ["👥 Convidados", f.get("convidados")],
+      ["🎵 Estilos", estilos.join(", ")],
+      ["💬 Mensagem", f.get("mensagem")],
+    ];
+    return lines
+      .filter((l) => typeof l === "string" || (l[1] && String(l[1]).trim()))
+      .map((l) => (typeof l === "string" ? l : `${l[0]}: ${String(l[1]).trim()}`))
+      .join("\n");
+  };
+
+  const send = (intent) => {
+    const required = intent === "agenda" ? ["f-nome", "f-data"] : ["f-nome", "f-tipo", "f-data"];
+    const missing = required.map((id) => document.getElementById(id)).filter((el) => !el.value.trim());
+    if (missing.length) {
+      note.textContent = "Por favor, preencha: " + missing.map((el) => form.querySelector(`label[for="${el.id}"]`).childNodes[0].textContent.trim()).join(", ") + ".";
+      note.style.color = "var(--gold-2)";
+      missing[0].focus();
+      return;
+    }
+    note.textContent = "Abrindo o WhatsApp…";
+    note.style.color = "";
+    window.open(waLink(buildMessage(intent)), "_blank", "noopener");
+  };
+
+  form.addEventListener("submit", (e) => { e.preventDefault(); send("agendar"); });
+  form.querySelectorAll("[data-form-action]").forEach((b) => b.addEventListener("click", () => send(b.dataset.formAction)));
+
+  document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
