@@ -262,6 +262,8 @@
 
   /* Estilos musicais */
   .rep-box { margin-bottom: 26px; }
+  .genre-row.venue-row { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto; }
+  @media (max-width: 760px) { .genre-row.venue-row { grid-template-columns: minmax(0, 1fr); } .genre-row.venue-row .row-actions { grid-column: auto; justify-content: flex-end; } }
   .genre-list { display: grid; gap: 10px; margin-bottom: 14px; }
   .genre-row {
     display: grid; grid-template-columns: 64px minmax(0, 1fr) minmax(0, 2fr) auto; gap: 10px; align-items: end;
@@ -375,6 +377,7 @@
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-agenda" id="t-agenda" tabindex="-1">📅 Agenda</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-promo" id="t-promo" tabindex="-1">🎁 Oferta especial</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-genres" id="t-genres" tabindex="-1">🎵 Estilos</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-venues" id="t-venues" tabindex="-1">📍 Onde toca</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-about" id="t-about" tabindex="-1">📖 História</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-reviews" id="t-reviews" tabindex="-1">⭐ Avaliações</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-videos" id="t-videos" tabindex="-1">🎬 Vídeos</button>
@@ -579,6 +582,40 @@
           <div id="promo-pv"></div>
         </div>
       </div>
+    </section>
+
+    <!-- Onde toca -->
+    <section class="panel" role="tabpanel" id="p-venues" aria-labelledby="t-venues" hidden>
+      <h2>Onde toca</h2>
+      <p class="hint">Locais de referência onde o Letieri se apresenta. Os 2 primeiros também aparecem no topo do site (“Cantor bem avaliado · …”) e no texto da aba Bares e restaurantes.</p>
+      <form id="venues-form">
+        <label class="switch"><input type="checkbox" id="vn-active"> Exibir a seção “Onde toca” no site</label>
+        <div class="two">
+          <div class="field">
+            <label for="vn-eyebrow">Texto pequeno acima do título</label>
+            <input type="text" id="vn-eyebrow" maxlength="40" placeholder="Onde toca">
+          </div>
+          <div class="field">
+            <label for="vn-title">Título</label>
+            <input type="text" id="vn-title" maxlength="100" placeholder="Presença em casas de renome">
+          </div>
+        </div>
+        <div class="field">
+          <label for="vn-lead">Texto abaixo do título <small>(opcional)</small></label>
+          <input type="text" id="vn-lead" maxlength="300">
+        </div>
+        <h3>Locais</h3>
+        <div class="genre-list" id="venue-list"></div>
+        <button class="btn btn-ghost" type="button" id="add-venue">+ Adicionar local</button>
+        <div class="field" style="margin-top:16px">
+          <label for="vn-note">Frase abaixo dos locais <small>(opcional)</small></label>
+          <input type="text" id="vn-note" maxlength="200">
+        </div>
+        <div class="save-row">
+          <button class="btn btn-gold" type="submit">Salvar “Onde toca”</button>
+          <span class="status" role="status"></span>
+        </div>
+      </form>
     </section>
 
     <!-- História -->
@@ -868,6 +905,7 @@
     fillAbout(extra.about);
     fillRepertoire(extra.repertoire);
     fillListen(extra.listen);
+    fillVenues(extra.venues);
     renderGenres();
     const agenda = await api("/api/admin/agenda");
     busy = new Set(agenda.busyDates);
@@ -1039,6 +1077,103 @@
       });
       config = res;
       setStatus(status, res.aboutAdmin.active ? "✓ Salvo! A história está no site." : "✓ Salvo! A seção está desativada no site.", "ok");
+    } catch (err) {
+      setStatus(status, err.message, "err");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ---------- Onde toca ----------
+  let venueItems = [];
+
+  function renderVenues() {
+    const list = $("venue-list");
+    list.replaceChildren();
+    venueItems.forEach((v, i) => {
+      const row = document.createElement("div");
+      row.className = "genre-row venue-row";
+      const field = (label, key, max, placeholder) => {
+        const wrap = document.createElement("div");
+        wrap.className = "field";
+        const id = `vn-${key}-${i}`;
+        const lb = document.createElement("label");
+        lb.htmlFor = id;
+        lb.textContent = label;
+        const input = document.createElement("input");
+        input.type = "text";
+        input.id = id;
+        input.maxLength = max;
+        input.placeholder = placeholder;
+        input.value = v[key] || "";
+        input.addEventListener("input", () => { v[key] = input.value; });
+        wrap.append(lb, input);
+        return wrap;
+      };
+      const actions = document.createElement("div");
+      actions.className = "row-actions";
+      const mk = (label, aria, disabled, fn) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "icon-btn";
+        b.textContent = label;
+        b.setAttribute("aria-label", aria);
+        b.disabled = disabled;
+        b.addEventListener("click", fn);
+        return b;
+      };
+      actions.append(
+        mk("↑", "Subir", i === 0, () => { [venueItems[i - 1], venueItems[i]] = [venueItems[i], venueItems[i - 1]]; renderVenues(); }),
+        mk("↓", "Descer", i === venueItems.length - 1, () => { [venueItems[i + 1], venueItems[i]] = [venueItems[i], venueItems[i + 1]]; renderVenues(); }),
+        mk("×", `Remover ${v.name || "local"}`, false, () => { venueItems.splice(i, 1); renderVenues(); }),
+      );
+      row.append(field("Nome do local", "name", 60, "Ex.: Coco Bambu"), field("Tipo", "type", 40, "Ex.: Restaurante"), actions);
+      list.append(row);
+    });
+    if (!venueItems.length) {
+      const p = document.createElement("p");
+      p.className = "empty";
+      p.textContent = "Nenhum local cadastrado.";
+      list.append(p);
+    }
+    $("add-venue").disabled = venueItems.length >= 12;
+  }
+
+  function fillVenues(v) {
+    v = v || {};
+    $("vn-active").checked = Boolean(v.active);
+    $("vn-eyebrow").value = v.eyebrow || "";
+    $("vn-title").value = v.title || "";
+    $("vn-lead").value = v.lead || "";
+    $("vn-note").value = v.note || "";
+    venueItems = (v.items || []).map((x) => ({ ...x }));
+    renderVenues();
+  }
+
+  $("add-venue").addEventListener("click", () => {
+    venueItems.push({ name: "", type: "" });
+    renderVenues();
+    $(`vn-name-${venueItems.length - 1}`).focus();
+  });
+
+  $("venues-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const status = form.querySelector(".save-row .status");
+    const btn = form.querySelector('[type="submit"]');
+    btn.disabled = true;
+    setStatus(status, "Salvando…");
+    try {
+      const res = await api("/api/admin/venues", {
+        method: "PUT",
+        body: {
+          active: $("vn-active").checked, eyebrow: $("vn-eyebrow").value, title: $("vn-title").value,
+          lead: $("vn-lead").value, note: $("vn-note").value, items: venueItems,
+        },
+      });
+      config = res;
+      fillVenues(res.venuesAdmin);
+      setStatus(status, res.venuesAdmin.active ? "✓ Salvo! Já está no site." : "✓ Salvo! A seção está desligada no site.", "ok");
     } catch (err) {
       setStatus(status, err.message, "err");
     } finally {

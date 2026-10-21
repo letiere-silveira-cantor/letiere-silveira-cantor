@@ -56,5 +56,22 @@
     "title": "Planejei (Ao Vivo)",
     "text": "Confira uma amostra do som do Letieri ao vivo.",
     "buttonText": ""
+  },
+  "venues": {
+    "active": true,
+    "eyebrow": "Onde toca",
+    "title": "Presença em casas de renome",
+    "lead": "Cantor bem avaliado, com apresentações em casas conhecidas de Florianópolis e região.",
+    "note": "e outros bares, restaurantes e eventos em Florianópolis e região.",
+    "items": [
+      {
+        "name": "Coco Bambu",
+        "type": "Restaurante"
+      },
+      {
+        "name": "Don Pierro",
+        "type": "Restaurante"
+      }
+    ]
   }
 }

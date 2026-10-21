@@ -272,7 +272,8 @@
   }
 
   /* Onde toca */
-  .venues { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 36px; }
+  .venues { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; margin-top: 36px; }
+  #onde-toca[hidden] { display: none; }
   .venue {
     border: 1px solid var(--line); border-radius: var(--radius); padding: 34px 26px; text-align: center;
     background: radial-gradient(400px 200px at 50% 0%, rgba(217, 169, 91, .12), transparent 70%), var(--card);
@@ -555,7 +556,7 @@
             <div class="marquee-group" id="genre-chip-group"><span class="chip">SERTANEJO</span><span class="chip">MPB</span><span class="chip">REGGAE</span><span class="chip">ROCK</span></div>
           </div>
         </div>
-        <div class="rating"><span class="stars" aria-hidden="true">★★★★★</span> Cantor bem avaliado · Coco Bambu e Don Pierro</div>
+        <div class="rating"><span class="stars" aria-hidden="true">★★★★★</span> <span id="rating-text">Cantor bem avaliado · Coco Bambu e Don Pierro</span></div>
         <div class="reviews" id="reviews" aria-label="Avaliações de clientes" hidden></div>
         <div class="cta-row">
           <a class="btn btn-wa" data-wa="agendar" href="#"><svg><use href="#i-wa"/></svg>Agendar pelo WhatsApp</a>
@@ -729,7 +730,7 @@
       <div class="panel" role="tabpanel" id="p-bares" aria-labelledby="tab-bares" hidden>
         <div>
           <h3>Bares e restaurantes</h3>
-          <p>Experiência de quem já toca em casas de renome como Coco Bambu e Don Pierro: volume certo, repertório que acompanha o clima da casa.</p>
+          <p id="bar-venues-text">Experiência de quem já toca em casas de renome como Coco Bambu e Don Pierro: volume certo, repertório que acompanha o clima da casa.</p>
           <ul>
             <li>Apresentações fixas semanais ou datas avulsas</li>
             <li>Happy hour, jantar e fins de semana</li>
@@ -770,17 +771,17 @@
   <section id="onde-toca">
     <svg class="engrave e-venue-mic" viewBox="0 0 120 300" aria-hidden="true"><use href="#i-mic"/></svg>
     <div class="wrap">
-      <p class="eyebrow">Onde toca</p>
-      <h2>Presença em casas de renome</h2>
-      <p class="lead">Cantor bem avaliado, com apresentações em casas conhecidas de Florianópolis e região.</p>
-      <div class="venues">
+      <p class="eyebrow" id="venues-eyebrow">Onde toca</p>
+      <h2 id="venues-title">Presença em casas de renome</h2>
+      <p class="lead" id="venues-lead">Cantor bem avaliado, com apresentações em casas conhecidas de Florianópolis e região.</p>
+      <div class="venues" id="venues-grid">
         <div class="venue"><strong>Coco Bambu</strong><span>Restaurante</span></div>
         <div class="venue"><strong>Don Pierro</strong><span>Restaurante</span></div>
       </div>
-      <p class="venues-note">e outros bares, restaurantes e eventos em Florianópolis e região.</p>
+      <p class="venues-note" id="venues-note">e outros bares, restaurantes e eventos em Florianópolis e região.</p>
       <div class="proof">
         <div><strong>★★★★★ Bem avaliado</strong><span>Reconhecido por clientes e pelas casas onde se apresenta.</span></div>
-        <div><strong>Repertório versátil</strong><span>Sertanejo, MPB, Reggae e Rock no mesmo show.</span></div>
+        <div><strong>Repertório versátil</strong><span id="proof-genres">Sertanejo, MPB, Reggae e Rock no mesmo show.</span></div>
         <div><strong>Atendimento direto</strong><span>Você fala com o próprio artista pelo WhatsApp.</span></div>
       </div>
     </div>
@@ -1240,6 +1241,44 @@
     box.hidden = !box.children.length;
   }
 
+  // "a, b e c"
+  const joinPt = (list) => (list.length < 2 ? list.join("") : `${list.slice(0, -1).join(", ")} e ${list[list.length - 1]}`);
+
+  // Seção "Onde toca" + menções aos locais no topo e na aba de bares.
+  function applyVenues(venues, names, genres) {
+    names = names || [];
+    const top = names.slice(0, 2);
+    document.getElementById("rating-text").textContent = top.length ? `Cantor bem avaliado · ${joinPt(top)}` : "Cantor bem avaliado";
+    document.getElementById("bar-venues-text").textContent = top.length
+      ? `Experiência de quem já toca em casas de renome como ${joinPt(top)}: volume certo, repertório que acompanha o clima da casa.`
+      : "Experiência em bares e restaurantes: volume certo, repertório que acompanha o clima da casa.";
+    if (genres && genres.length) document.getElementById("proof-genres").textContent = `${joinPt(genres.map((g) => g.name))} no mesmo show.`;
+
+    const section = document.getElementById("onde-toca");
+    section.hidden = !venues;
+    if (!venues) return;
+    const set = (id, text) => { const el = document.getElementById(id); el.textContent = text || ""; el.hidden = !text; };
+    set("venues-eyebrow", venues.eyebrow);
+    set("venues-title", venues.title);
+    set("venues-lead", venues.lead);
+    set("venues-note", venues.note);
+    const grid = document.getElementById("venues-grid");
+    grid.replaceChildren();
+    for (const v of venues.items) {
+      const card = document.createElement("div");
+      card.className = "venue";
+      const name = document.createElement("strong");
+      name.textContent = v.name;
+      card.append(name);
+      if (v.type) {
+        const type = document.createElement("span");
+        type.textContent = v.type;
+        card.append(type);
+      }
+      grid.append(card);
+    }
+  }
+
   // Cartão "Ouça": rede social escolhida no admin, com ícone e texto do botão correspondentes.
   function applyListen(listen) {
     const card = document.getElementById("listen");
@@ -1303,6 +1342,7 @@
       applyGenres(cfg.genres);
       applyRepertoire(cfg.repertoire, cfg.genres);
       applyListen(cfg.listen);
+      applyVenues(cfg.venues, cfg.venueNames, cfg.genres);
       applyAbout(cfg.about);
       setupMarquee();
       (cfg.busyDates || []).forEach((d) => busyDates.add(d));
