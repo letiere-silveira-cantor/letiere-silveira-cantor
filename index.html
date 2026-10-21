@@ -135,11 +135,18 @@
     .reviews::-webkit-scrollbar { display: none; }
     .review { flex: 0 0 min(82%, 300px); scroll-snap-align: center; }
   }
-  .hero-media { justify-self: center; width: min(100%, 420px); display: flex; flex-direction: column; align-items: center; gap: 40px; }
-  .portrait { position: relative; width: 100%; }
-  .portrait::before {
-    content: ""; position: absolute; inset: -14px; border-radius: 50%;
-    border: 1px solid rgba(217, 169, 91, .45);
+  .hero-media { justify-self: center; width: min(100%, 400px); display: flex; flex-direction: column; align-items: center; gap: 40px; }
+  .portrait { position: relative; width: 84%; margin-top: 40%; } /* espaço para os ombros do violão */
+  .portrait img { position: relative; z-index: 1; }
+  .badge-loc { z-index: 2; }
+  .hero-grid > div:first-child { position: relative; z-index: 2; }
+  .offer { z-index: 1; }
+  /* Silhueta dourada de violão: a foto é a boca do violão (1 unidade = 1% da largura da foto) */
+  .guitar-outline {
+    position: absolute; z-index: 0; pointer-events: none;
+    left: -50%; top: -220%; width: 200%; height: auto; aspect-ratio: 200 / 390;
+    color: var(--gold); overflow: visible;
+    filter: drop-shadow(0 0 10px rgba(217, 169, 91, .25));
   }
   .portrait img {
     width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: 50%;
@@ -153,7 +160,7 @@
   @media (max-width: 880px) {
     .hero-grid { grid-template-columns: 1fr; text-align: center; }
     .hero-media { order: -1; width: min(100%, 380px); gap: 34px; }
-    .portrait { width: min(84%, 320px); }
+    .portrait { width: min(70%, 280px); }
     .chips, .cta-row, .rating { justify-content: center; }
     .hero .lead { margin-left: auto; margin-right: auto; }
   }
@@ -301,7 +308,6 @@
     color: var(--gold); opacity: .13; height: auto;
   }
   .e-hero-guitar { width: 190px; left: -30px; bottom: -70px; transform: rotate(-22deg); }
-  .e-hero-mic { width: 120px; right: 3%; top: 40px; transform: rotate(16deg); opacity: .16; }
   .e-quick-mic { width: 70px; left: 50%; top: -10px; transform: translateX(-50%) rotate(-8deg); opacity: .1; }
   .e-events-guitar { width: 170px; right: -20px; top: 30px; transform: rotate(24deg); }
   .e-events-mic { width: 90px; left: -10px; bottom: 20px; transform: rotate(-18deg); opacity: .1; }
@@ -310,7 +316,6 @@
   .e-book-guitar { width: 200px; right: -40px; top: 10px; transform: rotate(18deg); opacity: .09; }
   @media (max-width: 880px) {
     .e-hero-guitar { width: 130px; left: -40px; bottom: 30%; }
-    .e-hero-mic { width: 80px; right: -10px; top: 18%; }
     .e-events-guitar, .e-book-guitar { width: 120px; right: -50px; }
     .e-book-mic { display: none; }
   }
@@ -461,7 +466,6 @@
   <!-- Hero -->
   <section class="hero" id="inicio">
     <svg class="engrave e-hero-guitar" viewBox="0 0 120 340" aria-hidden="true"><use href="#i-guitar"/></svg>
-    <svg class="engrave e-hero-mic" viewBox="0 0 120 300" aria-hidden="true"><use href="#i-mic"/></svg>
     <div class="wrap hero-grid">
       <div>
         <p class="eyebrow">Letieri Silveira · Músico &amp; Cantor</p>
@@ -479,6 +483,43 @@
       </div>
       <div class="hero-media">
         <div class="portrait">
+          <svg class="guitar-outline" viewBox="0 -130 200 390" aria-hidden="true">
+            <defs>
+              <linearGradient id="neck-fade" x1="0" y1="-130" x2="0" y2="-30" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+                <stop offset="1" stop-color="#fff" stop-opacity="1"/>
+              </linearGradient>
+              <mask id="neck-mask" maskUnits="userSpaceOnUse" x="0" y="-130" width="200" height="390">
+                <rect x="0" y="-130" width="200" height="390" fill="url(#neck-fade)"/>
+              </mask>
+              <radialGradient id="body-glow" cx="100" cy="160" r="95" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#d9a95b" stop-opacity=".16"/>
+                <stop offset="1" stop-color="#d9a95b" stop-opacity=".03"/>
+              </radialGradient>
+            </defs>
+            <g mask="url(#neck-mask)" fill="none" stroke="currentColor" stroke-linecap="round">
+              <!-- Braço com trastes -->
+              <path d="M88 -130V44M112 -130V44" stroke-width=".9"/>
+              <path d="M88 30h24M88 16h24M88 1h24M88 -16h24M88 -35h24M88 -56h24M88 -80h24M88 -107h24" stroke-width=".55" opacity=".8"/>
+              <g fill="currentColor" stroke="none" opacity=".7"><circle cx="100" cy="-26" r="1.3"/><circle cx="100" cy="-68" r="1.3"/></g>
+              <!-- Cordas descendo até a boca -->
+              <path d="M92.5 -130V92M95.5 -130V91M98.5 -130V90M101.5 -130V90M104.5 -130V91M107.5 -130V92" stroke-width=".35" opacity=".9"/>
+            </g>
+            <g fill="none" stroke="currentColor" stroke-linejoin="round">
+              <!-- Corpo -->
+              <path d="M112 44C140 40 164 58 166 92C168 118 156 128 158 146C160 166 176 178 174 206C172 236 138 250 100 250C62 250 28 236 26 206C24 178 40 166 42 146C44 128 32 118 34 92C36 58 60 40 88 44Z"
+                    fill="url(#body-glow)" stroke-width="1.1"/>
+              <path d="M112 44C140 40 164 58 166 92C168 118 156 128 158 146C160 166 176 178 174 206C172 236 138 250 100 250C62 250 28 236 26 206C24 178 40 166 42 146C44 128 32 118 34 92C36 58 60 40 88 44Z"
+                    transform="translate(100 150) scale(.94) translate(-100 -150)" stroke-width=".45" opacity=".6"/>
+              <!-- Roseta em volta da boca (foto) -->
+              <circle cx="100" cy="140" r="54.5" stroke-width=".9"/>
+              <circle cx="100" cy="140" r="57.5" stroke-width=".45" stroke-dasharray="1.2 1.4" opacity=".8"/>
+              <circle cx="100" cy="140" r="60" stroke-width=".45" opacity=".6"/>
+              <!-- Cordas da boca até o cavalete -->
+              <path d="M92.5 190V224M95.5 190V224M98.5 190V224M101.5 190V224M104.5 190V224M107.5 190V224" stroke-width=".35" opacity=".9"/>
+              <rect x="80" y="222" width="40" height="7" rx="3" stroke-width=".8" fill="rgba(217,169,91,.12)"/>
+            </g>
+          </svg>
           <img src="assets/letieri.jpg" alt="Letieri Silveira tocando violão" width="800" height="800">
           <span class="badge-loc">📍 Florianópolis e região</span>
         </div>
