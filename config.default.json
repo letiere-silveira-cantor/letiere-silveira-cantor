@@ -47,5 +47,14 @@
   },
   "reviews": [],
   "busyDates": [],
-  "videos": []
+  "videos": [],
+  "listen": {
+    "active": true,
+    "network": "youtube",
+    "url": "https://www.youtube.com/results?search_query=Letieri+Silveira+Planejei+Ao+Vivo",
+    "eyebrow": "Ouça",
+    "title": "Planejei (Ao Vivo)",
+    "text": "Confira uma amostra do som do Letieri ao vivo.",
+    "buttonText": ""
+  }
 }

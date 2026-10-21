@@ -241,6 +241,25 @@
   .file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
   #about-text { min-height: 260px; line-height: 1.6; }
 
+  /* Cartão com link de rede social */
+  .listen-box { margin-bottom: 26px; }
+  .net-row { display: flex; gap: 12px; align-items: center; }
+  .net-row select { flex: 1; }
+  .net-preview, .listen-pv-icon {
+    flex: none; width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center;
+    color: var(--gold-2); background: rgba(217, 169, 91, .12); border: 1px solid rgba(217, 169, 91, .35);
+  }
+  .net-preview svg, .listen-pv-icon svg { width: 26px; height: 26px; }
+  .listen-pv {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 20px;
+    border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(120deg, rgba(217, 169, 91, .14), transparent 60%), var(--card);
+  }
+  .listen-pv-main { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .listen-pv small { display: block; color: var(--gold); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; font-size: .7rem; }
+  .listen-pv strong { display: block; font-family: "Fraunces", serif; font-size: 1.25rem; }
+  .listen-pv p { margin: 2px 0 0; color: var(--muted); font-size: .9rem; }
+  .listen-pv .btn svg { width: 18px; height: 18px; }
+
   /* Estilos musicais */
   .rep-box { margin-bottom: 26px; }
   .genre-list { display: grid; gap: 10px; margin-bottom: 14px; }
@@ -716,6 +735,51 @@
     <section class="panel" role="tabpanel" id="p-videos" aria-labelledby="t-videos" hidden>
       <h2>Vídeos</h2>
       <p class="hint">Os vídeos aparecem na seção “Vídeos” do site, do mais novo para o mais antigo.</p>
+
+      <form class="box listen-box" id="listen-form">
+        <h3>Cartão de destaque com link</h3>
+        <p class="hint">O cartão abaixo dos vídeos (ex.: “Ouça · Planejei (Ao Vivo)”). Escolha a rede social: o ícone e o texto do botão acompanham a escolha.</p>
+        <label class="switch"><input type="checkbox" id="ls-active"> Exibir o cartão no site</label>
+        <div class="cols">
+          <div>
+            <div class="field">
+              <label for="ls-network">Rede social</label>
+              <div class="net-row"><span class="net-preview" id="ls-net-icon"></span><select id="ls-network"><option value="youtube"></option><option value="instagram"></option><option value="tiktok"></option><option value="spotify"></option><option value="facebook"></option><option value="threads"></option><option value="soundcloud"></option><option value="deezer"></option><option value="applemusic"></option><option value="whatsapp"></option><option value="link"></option></select></div>
+            </div>
+            <div class="field">
+              <label for="ls-url">Link</label>
+              <input type="url" id="ls-url" maxlength="500" placeholder="https://…">
+            </div>
+            <div class="two">
+              <div class="field">
+                <label for="ls-eyebrow">Texto pequeno <small>(opcional)</small></label>
+                <input type="text" id="ls-eyebrow" maxlength="30" placeholder="Ouça">
+              </div>
+              <div class="field">
+                <label for="ls-button">Texto do botão <small id="ls-button-hint"></small></label>
+                <input type="text" id="ls-button" maxlength="40">
+              </div>
+            </div>
+            <div class="field">
+              <label for="ls-title">Título</label>
+              <input type="text" id="ls-title" maxlength="80" placeholder="Ex.: Planejei (Ao Vivo)">
+            </div>
+            <div class="field">
+              <label for="ls-text">Descrição <small>(opcional)</small></label>
+              <input type="text" id="ls-text" maxlength="200">
+            </div>
+          </div>
+          <div>
+            <div class="preview-label">Prévia</div>
+            <div class="listen-pv" id="ls-preview"></div>
+          </div>
+        </div>
+        <div class="save-row">
+          <button class="btn btn-gold" type="submit">Salvar cartão</button>
+          <span class="status" role="status"></span>
+        </div>
+      </form>
+
       <div class="cols">
         <form class="box" id="upload-form">
           <h3>Enviar vídeo do computador/celular</h3>
@@ -755,6 +819,7 @@
 </div>
 
 <script src="assets/calendar.js"></script>
+<script src="assets/social-icons.js"></script>
 <script>
   const $ = (id) => document.getElementById(id);
   let config = null;
@@ -802,6 +867,7 @@
     const extra = await api("/api/admin/about-data");
     fillAbout(extra.about);
     fillRepertoire(extra.repertoire);
+    fillListen(extra.listen);
     renderGenres();
     const agenda = await api("/api/admin/agenda");
     busy = new Set(agenda.busyDates);
@@ -973,6 +1039,79 @@
       });
       config = res;
       setStatus(status, res.aboutAdmin.active ? "✓ Salvo! A história está no site." : "✓ Salvo! A seção está desativada no site.", "ok");
+    } catch (err) {
+      setStatus(status, err.message, "err");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ---------- Cartão com link de rede social ----------
+  const NETS = SocialNetworks.NETWORKS;
+  document.querySelectorAll("#ls-network option").forEach((o) => { o.textContent = NETS[o.value].name; });
+
+  function previewListen() {
+    const key = $("ls-network").value;
+    const net = NETS[key];
+    $("ls-net-icon").innerHTML = SocialNetworks.svg(key);
+    $("ls-button").placeholder = net.action;
+    $("ls-button-hint").textContent = `(vazio = “${net.action}”)`;
+    const pv = $("ls-preview");
+    pv.replaceChildren();
+    const main = document.createElement("div");
+    main.className = "listen-pv-main";
+    const icon = document.createElement("span");
+    icon.className = "listen-pv-icon";
+    icon.innerHTML = SocialNetworks.svg(key);
+    const txt = document.createElement("div");
+    if ($("ls-eyebrow").value.trim()) { const sm = document.createElement("small"); sm.textContent = $("ls-eyebrow").value; txt.append(sm); }
+    const st = document.createElement("strong");
+    st.textContent = $("ls-title").value || "Título do cartão";
+    txt.append(st);
+    if ($("ls-text").value.trim()) { const p = document.createElement("p"); p.textContent = $("ls-text").value; txt.append(p); }
+    main.append(icon, txt);
+    const btn = document.createElement("span");
+    btn.className = "btn btn-gold";
+    btn.innerHTML = SocialNetworks.svg(key);
+    btn.append($("ls-button").value.trim() || net.action);
+    pv.append(main, btn);
+    pv.style.opacity = $("ls-active").checked ? "1" : ".45";
+  }
+
+  function fillListen(l) {
+    l = l || {};
+    $("ls-active").checked = Boolean(l.active);
+    $("ls-network").value = NETS[l.network] ? l.network : "youtube";
+    $("ls-url").value = l.url || "";
+    $("ls-eyebrow").value = l.eyebrow || "";
+    $("ls-title").value = l.title || "";
+    $("ls-text").value = l.text || "";
+    $("ls-button").value = l.buttonText || "";
+    previewListen();
+  }
+  ["ls-active", "ls-network", "ls-eyebrow", "ls-title", "ls-text", "ls-button"].forEach((id) => {
+    $(id).addEventListener("input", previewListen);
+    $(id).addEventListener("change", previewListen);
+  });
+
+  $("listen-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const status = form.querySelector(".save-row .status");
+    const btn = form.querySelector('[type="submit"]');
+    btn.disabled = true;
+    setStatus(status, "Salvando…");
+    try {
+      const res = await api("/api/admin/listen", {
+        method: "PUT",
+        body: {
+          active: $("ls-active").checked, network: $("ls-network").value, url: $("ls-url").value,
+          eyebrow: $("ls-eyebrow").value, title: $("ls-title").value, text: $("ls-text").value, buttonText: $("ls-button").value,
+        },
+      });
+      config = res;
+      fillListen(res.listenAdmin);
+      setStatus(status, res.listenAdmin.active ? "✓ Salvo! O cartão está no site." : "✓ Salvo! O cartão está desligado no site.", "ok");
     } catch (err) {
       setStatus(status, err.message, "err");
     } finally {
