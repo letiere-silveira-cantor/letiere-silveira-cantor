@@ -602,7 +602,7 @@
               <rect x="80" y="222" width="40" height="7" rx="3" stroke-width=".8" fill="rgba(217,169,91,.12)"/>
             </g>
           </svg>
-          <img src="assets/letieri.jpg" alt="Letieri Silveira tocando violão" width="800" height="800">
+          <img id="hero-img" src="assets/letieri.jpg" alt="Letieri Silveira tocando violão" width="800" height="800">
           <span class="badge-loc">📍 Florianópolis e região</span>
         </div>
         <aside class="offer" id="promo" aria-label="Oferta especial" hidden>
@@ -1336,6 +1336,7 @@
     .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
     .then((cfg) => {
       applySlogan(cfg.slogan);
+      if (cfg.heroPhoto) document.getElementById("hero-img").src = cfg.heroPhoto;
       applyPromo(cfg.promo);
       applyVideos(cfg.videos);
       applyReviews(cfg.reviews);

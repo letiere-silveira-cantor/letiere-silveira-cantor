@@ -236,6 +236,8 @@
     border: 1px dashed var(--line); background: var(--bg); color: var(--muted); text-align: center; padding: 0;
   }
   .about-photo-box img { width: 100%; max-height: 380px; object-fit: cover; display: block; }
+  .hero-photo-box { width: 200px; min-height: 0; aspect-ratio: 1; border-radius: 50%; }
+  .hero-photo-box img { height: 100%; }
   .photo-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 22px; }
   .file-btn { position: relative; overflow: hidden; }
   .file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
@@ -490,6 +492,15 @@
           <div class="save-row">
             <button class="btn btn-gold" type="submit">Salvar slogan</button>
             <span class="status" role="status"></span>
+          </div>
+
+          <h3 style="margin-top: 28px">Foto principal</h3>
+          <p class="hint">A foto redonda do topo do site. Prefira uma foto quadrada, com o rosto no centro.</p>
+          <div class="about-photo-box hero-photo-box" id="hero-photo-box"></div>
+          <div class="photo-actions">
+            <label class="btn btn-ghost file-btn">📷 Trocar foto<input type="file" id="hero-file" accept="image/*"></label>
+            <button class="btn btn-danger" type="button" id="hero-photo-remove" hidden>Voltar à foto original</button>
+            <span class="status" id="hero-photo-status" role="status"></span>
           </div>
         </form>
         <div class="preview">
@@ -971,7 +982,43 @@
     $("s-hl").value = config.slogan.highlight;
     $("s-sub").value = config.slogan.subtitle;
     previewSlogan();
+    showHeroPhoto(config.heroPhoto);
   }
+
+  // ---------- Foto principal ----------
+  function showHeroPhoto(src) {
+    const img = document.createElement("img");
+    img.src = src || "/assets/letieri.jpg";
+    img.alt = "Foto principal";
+    $("hero-photo-box").replaceChildren(img);
+    $("hero-photo-remove").hidden = !src;
+  }
+
+  $("hero-file").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    const status = $("hero-photo-status");
+    setStatus(status, "Enviando foto…");
+    try {
+      const res = await api("/api/admin/hero/photo", { method: "PUT", body: { dataUrl: await shrinkImage(file) } });
+      config.heroPhoto = res.heroPhoto;
+      showHeroPhoto(res.heroPhoto);
+      setStatus(status, "✓ Foto salva!", "ok");
+    } catch (err) {
+      setStatus(status, err.message || "Não foi possível enviar a foto.", "err");
+    }
+  });
+
+  $("hero-photo-remove").addEventListener("click", async () => {
+    if (!confirm("Voltar à foto original do site?")) return;
+    try {
+      await api("/api/admin/hero/photo", { method: "DELETE" });
+      config.heroPhoto = "";
+      showHeroPhoto("");
+      setStatus($("hero-photo-status"), "✓ Foto original de volta.", "ok");
+    } catch (err) { setStatus($("hero-photo-status"), err.message, "err"); }
+  });
   ["s-text", "s-hl", "s-sub"].forEach((id) => $(id).addEventListener("input", previewSlogan));
 
   async function saveSettings(form, patch) {
