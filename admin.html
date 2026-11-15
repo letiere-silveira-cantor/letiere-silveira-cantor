@@ -56,6 +56,31 @@
   .field { margin-bottom: 16px; }
   .hint { color: var(--muted); font-size: .88rem; margin: 0 0 18px; }
 
+  /* Pedidos de música */
+  input[type="number"] { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; width: 100%; }
+  .mp-warn { border: 1px solid rgba(224, 120, 108, .4); background: rgba(224, 120, 108, .08); border-radius: 12px; padding: 12px 14px; font-size: .9rem; }
+  .queue-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .queue-sum { color: var(--gold-2); font-weight: 700; font-size: .9rem; }
+  .queue { list-style: none; margin: 0 0 18px; padding: 0; display: grid; gap: 10px; }
+  .queue li { display: flex; gap: 14px; align-items: flex-start; background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+  .queue li.new { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
+  .queue .q-body { flex: 1; min-width: 0; }
+  .queue .q-song { font-family: "Fraunces", serif; font-size: 1.15rem; font-weight: 700; }
+  .queue .q-artist { color: var(--muted); font-size: .88rem; }
+  .queue .q-ded { margin-top: 8px; font-size: .95rem; }
+  .queue .q-msg { margin-top: 4px; font-style: italic; color: var(--gold-2); overflow-wrap: anywhere; }
+  .queue .q-meta { margin-top: 6px; color: var(--muted); font-size: .8rem; }
+  .queue .btn { flex: none; padding: 9px 14px; font-size: .85rem; }
+  .queue .empty { color: var(--muted); justify-content: center; }
+  .played summary { cursor: pointer; color: var(--muted); font-weight: 700; margin-bottom: 12px; }
+  .played li { opacity: .7; }
+  .pedidos-cols { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
+  .qr-box { text-align: center; }
+  .qr { background: #fff; border-radius: 14px; padding: 14px; width: min(100%, 280px); margin: 0 auto 10px; }
+  .qr img { width: 100%; height: auto; image-rendering: pixelated; }
+  .qr-link { color: var(--gold-2); font-size: .88rem; word-break: break-all; display: block; margin-bottom: 14px; }
+  .qr-actions { justify-content: center; margin-bottom: 0; }
+
   /* Logotipo */
   .logo { display: inline-flex; flex-direction: column; gap: 3px; line-height: 1; text-decoration: none; }
   .logo-name { font-family: "Fraunces", serif; font-weight: 700; font-size: 1.02rem; letter-spacing: .16em; white-space: nowrap; color: var(--text); }
@@ -375,6 +400,7 @@
 
   <nav class="tabs" role="tablist" aria-label="Seções do painel">
     <button class="tab" role="tab" aria-selected="true" aria-controls="p-dash" id="t-dash">📊 Dashboard</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-pedidos" id="t-pedidos" tabindex="-1">🎤 Pedidos</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-slogan" id="t-slogan" tabindex="-1">✍️ Slogan</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-agenda" id="t-agenda" tabindex="-1">📅 Agenda</button>
     <button class="tab" role="tab" aria-selected="false" aria-controls="p-promo" id="t-promo" tabindex="-1">🎁 Oferta especial</button>
@@ -467,6 +493,60 @@
         <div class="box">
           <h3 id="list-title">Shows do mês</h3>
           <div class="table-wrap"><table class="shows-table" id="shows-table"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pedidos de música -->
+    <section class="panel" role="tabpanel" id="p-pedidos" aria-labelledby="t-pedidos" hidden>
+      <h2>Pedidos de música</h2>
+      <p class="hint">O cliente lê o QR code no palco, escolhe a música, escreve a dedicatória e paga pelo Mercado Pago. O pedido só aparece aqui depois do pagamento aprovado.</p>
+      <p class="mp-warn" id="mp-warn" hidden>⚠️ Falta ligar o Mercado Pago: na Vercel, em <b>Settings → Environment Variables</b>, crie <b>MP_ACCESS_TOKEN</b> com o Access Token de produção da sua conta Mercado Pago e faça um Redeploy. Até lá, a página de pedidos aparece como fechada.</p>
+
+      <div class="queue-head">
+        <h3>Fila do show</h3>
+        <span class="queue-sum" id="queue-sum"></span>
+      </div>
+      <ul class="queue" id="queue"></ul>
+      <details class="played">
+        <summary id="played-sum">Tocadas</summary>
+        <ul class="queue" id="played"></ul>
+      </details>
+
+      <div class="cols pedidos-cols">
+        <form id="pedidos-form">
+          <h3>Configuração</h3>
+          <label class="switch"><input type="checkbox" id="pd-active"> Pedidos abertos</label>
+          <div class="field">
+            <label for="pd-price">Valor de cada pedido (R$)</label>
+            <input type="number" id="pd-price" min="1" max="10000" step="0.01" inputmode="decimal">
+          </div>
+          <label class="switch"><input type="checkbox" id="pd-tips"> Oferecer caixinha extra (R$ 5, 10, 20 ou outro valor)</label>
+          <div class="field">
+            <label for="pd-title">Título da página</label>
+            <input type="text" id="pd-title" maxlength="80" placeholder="Peça sua música">
+          </div>
+          <div class="field">
+            <label for="pd-text">Texto de apoio</label>
+            <input type="text" id="pd-text" maxlength="240">
+          </div>
+          <div class="field">
+            <label for="pd-songs">Repertório <small id="pd-count">(uma música por linha: Música - Artista)</small></label>
+            <textarea id="pd-songs" rows="12" placeholder="Evidências - Chitãozinho & Xororó&#10;Garota de Ipanema - Tom Jobim&#10;Is This Love - Bob Marley"></textarea>
+          </div>
+          <div class="save-row">
+            <button class="btn btn-gold" type="submit">Salvar pedidos</button>
+            <span class="status" role="status"></span>
+          </div>
+        </form>
+        <div class="preview qr-box">
+          <div class="preview-label">QR code do palco</div>
+          <div class="qr" id="qr"></div>
+          <a class="qr-link" id="qr-link" target="_blank" rel="noopener"></a>
+          <div class="photo-actions qr-actions">
+            <a class="btn btn-gold" id="qr-download" download="qr-pedidos-letieri.png">⬇️ Baixar QR</a>
+            <button class="btn btn-ghost" type="button" id="qr-print">🖨️ Imprimir</button>
+          </div>
         </div>
       </div>
     </section>
@@ -868,6 +948,7 @@
 
 <script src="assets/calendar.js"></script>
 <script src="assets/social-icons.js"></script>
+<script src="assets/vendor/qrcode.js"></script>
 <script>
   const $ = (id) => document.getElementById(id);
   let config = null;
@@ -927,6 +1008,7 @@
     setupUploads();
     shows = (await api("/api/admin/shows")).shows;
     renderDashboard();
+    loadPedidos(true);
   }
 
   $("login-form").addEventListener("submit", async (e) => {
@@ -2167,6 +2249,156 @@
     });
     return api("/api/admin/videos/blob", { method: "POST", body: { url: blob.url, title } });
   }
+
+  // ---------- Pedidos de música ----------
+  let seenPedidos = null; // ids já vistos, para destacar e tocar um aviso nos novos
+
+  function fillPedidosForm(s, ready) {
+    $("pd-active").checked = Boolean(s.active);
+    $("pd-price").value = s.price;
+    $("pd-tips").checked = Boolean(s.tips);
+    $("pd-title").value = s.title || "";
+    $("pd-text").value = s.text || "";
+    $("pd-songs").value = (s.songs || []).map((m) => (m.artist ? `${m.title} - ${m.artist}` : m.title)).join("\n");
+    countSongs();
+    $("mp-warn").hidden = ready;
+  }
+  function countSongs() {
+    const n = $("pd-songs").value.split("\n").filter((l) => l.trim()).length;
+    $("pd-count").textContent = `(${n} ${n === 1 ? "música" : "músicas"} · uma por linha: Música - Artista)`;
+  }
+  $("pd-songs").addEventListener("input", countSongs);
+
+  function beep() {
+    try {
+      const ctx = new AudioContext();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.frequency.value = 880;
+      g.gain.setValueAtTime(0.2, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+      o.connect(g).connect(ctx.destination);
+      o.start();
+      o.stop(ctx.currentTime + 0.6);
+    } catch {}
+  }
+
+  function pedidoItem(p) {
+    const li = document.createElement("li");
+    const body = document.createElement("div");
+    body.className = "q-body";
+    const add = (cls, text) => { if (!text) return; const d = document.createElement("div"); d.className = cls; d.textContent = text; body.append(d); };
+    add("q-song", p.song);
+    add("q-artist", p.artist);
+    const to = p.to && (/^para\b/i.test(p.to) ? p.to : `Para: ${p.to}`);
+    const ded = [p.from && `De: ${p.from}`, to].filter(Boolean).join(" · ");
+    add("q-ded", ded);
+    add("q-msg", p.message && `“${p.message}”`);
+    const hora = new Date(p.paidAt || p.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    add("q-meta", `${hora} · ${brl.format(p.amount)}${p.tip ? ` (caixinha ${brl.format(p.tip)})` : ""}`);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = p.status === "played" ? "btn btn-ghost" : "btn btn-gold";
+    btn.textContent = p.status === "played" ? "↩︎ Voltar à fila" : "✓ Tocada";
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      try {
+        await api("/api/admin/pedidos/tocada", { method: "PUT", body: { id: p.id, played: p.status !== "played" } });
+        loadPedidos();
+      } catch (err) { alert(err.message); btn.disabled = false; }
+    });
+    li.append(body, btn);
+    return li;
+  }
+
+  async function loadPedidos(fillForm = false) {
+    let data;
+    try { data = await api("/api/admin/pedidos"); } catch { return; }
+    if (fillForm) fillPedidosForm(data.settings, data.ready);
+    else $("mp-warn").hidden = data.ready;
+    const fila = data.pedidos.filter((p) => p.status === "paid");
+    const tocadas = data.pedidos.filter((p) => p.status === "played").reverse();
+    const novos = seenPedidos ? fila.filter((p) => !seenPedidos.has(p.id)) : [];
+    seenPedidos = new Set(data.pedidos.map((p) => p.id));
+    $("queue").replaceChildren(...fila.map((p) => {
+      const li = pedidoItem(p);
+      if (novos.includes(p)) li.classList.add("new");
+      return li;
+    }));
+    if (!fila.length) $("queue").innerHTML = '<li class="empty">Nenhum pedido na fila.</li>';
+    $("played").replaceChildren(...tocadas.map(pedidoItem));
+    $("played-sum").textContent = `Tocadas (${tocadas.length})`;
+    const hoje = new Date().toDateString();
+    const deHoje = data.pedidos.filter((p) => new Date(p.paidAt || p.createdAt).toDateString() === hoje);
+    const total = deHoje.reduce((s, p) => s + p.amount, 0);
+    $("queue-sum").textContent = deHoje.length ? `Hoje: ${deHoje.length} ${deHoje.length === 1 ? "pedido" : "pedidos"} · ${brl.format(total)}` : "";
+    if (novos.length) beep();
+  }
+
+  // Atualiza a fila a cada 10 segundos enquanto a aba Pedidos está aberta.
+  setInterval(() => {
+    if (!$("admin-view").hidden && !$("p-pedidos").hidden && !document.hidden) loadPedidos();
+  }, 10000);
+
+  $("pedidos-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const status = e.target.querySelector(".status");
+    const btn = e.target.querySelector('[type="submit"]');
+    btn.disabled = true;
+    try {
+      const data = await api("/api/admin/pedidos/settings", {
+        method: "PUT",
+        body: {
+          active: $("pd-active").checked, price: $("pd-price").value, tips: $("pd-tips").checked,
+          title: $("pd-title").value, text: $("pd-text").value, songsText: $("pd-songs").value,
+        },
+      });
+      fillPedidosForm(data.settings, data.ready);
+      setStatus(status, "✓ Salvo!", "ok");
+    } catch (err) {
+      setStatus(status, err.message, "err");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // QR code que leva para /pedir neste mesmo site.
+  (function setupQr() {
+    const link = `${location.origin}/pedir`;
+    const qr = qrcode(0, "M");
+    qr.addData(link);
+    qr.make();
+    const n = qr.getModuleCount();
+    const scale = 16;
+    const margin = 2 * scale;
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = n * scale + margin * 2;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#000";
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) ctx.fillRect(margin + c * scale, margin + r * scale, scale, scale);
+    const png = canvas.toDataURL("image/png");
+    const img = new Image();
+    img.src = png;
+    img.alt = "QR code para pedir música";
+    $("qr").replaceChildren(img);
+    $("qr-link").href = link;
+    $("qr-link").textContent = link;
+    $("qr-download").href = png;
+    $("qr-print").addEventListener("click", () => {
+      const w = window.open("", "_blank");
+      if (!w) return;
+      w.document.write(`<!doctype html><meta charset="utf-8"><title>QR · Peça sua música</title>
+        <body style="font-family:system-ui,sans-serif;text-align:center;padding:40px">
+        <h1 style="font-size:42px;margin:0 0 8px">🎶 Peça sua música</h1>
+        <p style="font-size:22px;margin:0 0 24px">Aponte a câmera do celular, escolha a música e faça a sua dedicatória</p>
+        <img src="${png}" style="width:70%;max-width:520px;image-rendering:pixelated">
+        <p style="font-size:26px;font-weight:700;margin-top:18px">Letieri Silveira · ao vivo</p>
+        <script>onload=()=>print()<\/script></body>`);
+      w.document.close();
+    });
+  })();
 
   // ---------- Início ----------
   fetch("/api/session", { credentials: "same-origin" })

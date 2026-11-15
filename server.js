@@ -23,7 +23,7 @@ const MIME = {
   ".webm": "video/webm",
   ".mov": "video/quicktime",
 };
-const PAGES = { "/": "index.html", "/index.html": "index.html", "/admin": "admin.html", "/admin.html": "admin.html" };
+const PAGES = { "/": "index.html", "/index.html": "index.html", "/admin": "admin.html", "/admin.html": "admin.html", "/pedir": "pedir.html", "/pedir.html": "pedir.html" };
 
 if (!PASSWORD) {
   console.error("Defina a senha do admin em ADMIN_PASSWORD (veja .env.example).");

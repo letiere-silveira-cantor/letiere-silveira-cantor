@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Peça sua música · Letieri Silveira</title>
+<meta name="description" content="Escolha uma música do repertório do Letieri Silveira, deixe uma dedicatória e peça direto do palco.">
+<meta name="theme-color" content="#0f0d0b">
+<link rel="icon" href="assets/favicon.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0d0b;
+    --card: #1d1814;
+    --line: #3a3027;
+    --text: #f3ece3;
+    --muted: #b8aa99;
+    --gold: #d9a95b;
+    --gold-2: #f0c98a;
+    --ok: #25d366;
+    --danger: #ef6f5e;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.5 "Manrope", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  h1, h2 { font-family: "Fraunces", Georgia, serif; line-height: 1.15; margin: 0 0 .4em; }
+  [hidden] { display: none !important; }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 0 16px 120px; }
+
+  header { text-align: center; padding: 28px 0 8px; }
+  .photo { width: 92px; height: 92px; border-radius: 50%; object-fit: cover; margin: 0 auto 14px; display: block; border: 2px solid var(--gold); }
+  .eyebrow { color: var(--gold); font-weight: 700; letter-spacing: .16em; text-transform: uppercase; font-size: .74rem; margin-bottom: 6px; }
+  h1 { font-size: 2rem; }
+  .lead { color: var(--muted); margin: 0 auto; max-width: 440px; }
+
+  .step { margin-top: 26px; }
+  .step h2 { font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+  .num { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--gold); color: #1b1207; font: 800 .85rem "Manrope", sans-serif; flex: none; }
+  .optional { color: var(--muted); font: 500 .85rem "Manrope", sans-serif; }
+
+  input, textarea {
+    width: 100%; font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 12px 14px; outline: none;
+  }
+  input:focus, textarea:focus { border-color: var(--gold); }
+  textarea { resize: vertical; min-height: 84px; }
+  label.f { display: block; margin-bottom: 10px; }
+  label.f span { display: block; font-size: .85rem; font-weight: 700; color: var(--muted); margin-bottom: 5px; }
+
+  .songs { list-style: none; margin: 10px 0 0; padding: 0; max-height: 46vh; overflow-y: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+  .songs li + li { border-top: 1px solid var(--line); }
+  .songs label { display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; }
+  .songs input { appearance: none; width: 20px; height: 20px; padding: 0; border-radius: 50%; border: 2px solid var(--line); background: transparent; flex: none; }
+  .songs input:checked { border-color: var(--gold); background: radial-gradient(var(--gold) 45%, transparent 50%); }
+  .songs label:has(input:checked) { background: rgba(217, 169, 91, .1); }
+  .songs b { display: block; font-weight: 700; }
+  .songs small { color: var(--muted); }
+  .empty { padding: 16px; color: var(--muted); text-align: center; }
+
+  .tips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font: inherit; font-weight: 700; color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 9px 16px; cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: #1b1207; }
+  #tip-other { margin-top: 10px; max-width: 180px; }
+
+  .bar {
+    position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: rgba(15, 13, 11, .94); backdrop-filter: blur(10px); border-top: 1px solid var(--line);
+  }
+  .bar-in { max-width: 560px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+  .total { flex: 1; font-size: .85rem; color: var(--muted); line-height: 1.25; }
+  .total b { display: block; color: var(--text); font-size: 1.25rem; }
+  .btn {
+    font: inherit; font-weight: 800; font-size: 1rem; border: 0; border-radius: 999px; padding: 14px 26px; cursor: pointer;
+    background: var(--gold); color: #1b1207; text-decoration: none; display: inline-block; text-align: center;
+  }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .error { color: var(--danger); font-weight: 600; min-height: 1.4em; margin: 10px 0 0; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 28px 22px; text-align: center; margin-top: 26px; }
+  .card .big { font-size: 2.6rem; margin-bottom: 6px; }
+  .card p { color: var(--muted); margin: 0 0 16px; }
+  .card .song { color: var(--gold-2); font-family: "Fraunces", serif; font-size: 1.3rem; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <img class="photo" id="photo" src="assets/letieri.jpg" alt="Letieri Silveira" width="92" height="92">
+    <div class="eyebrow">Letieri Silveira · ao vivo</div>
+    <h1 id="title">Peça sua música</h1>
+    <p class="lead" id="lead"></p>
+  </header>
+
+  <!-- Pedido fechado -->
+  <div class="card" id="closed" hidden>
+    <div class="big">🎸</div>
+    <h2>Pedidos fechados no momento</h2>
+    <p>Volte durante o show do Letieri para pedir a sua música.</p>
+    <a class="btn" href="/">Conhecer o Letieri</a>
+  </div>
+
+  <!-- Volta do pagamento -->
+  <div class="card" id="result" hidden>
+    <div class="big" id="r-icon">⏳</div>
+    <h2 id="r-title">Confirmando o pagamento…</h2>
+    <div class="song" id="r-song"></div>
+    <p id="r-text">Assim que o Mercado Pago confirmar, o seu pedido chega ao Letieri.</p>
+    <a class="btn" href="/pedir" id="r-again">Pedir outra música</a>
+  </div>
+
+  <form id="form" hidden novalidate>
+    <section class="step">
+      <h2><span class="num">1</span> Escolha a música</h2>
+      <input type="search" id="search" placeholder="🔎 Buscar por música ou artista" autocomplete="off">
+      <ul class="songs" id="songs"></ul>
+    </section>
+
+    <section class="step">
+      <h2><span class="num">2</span> Dedicatória <span class="optional">(opcional)</span></h2>
+      <label class="f"><span>Seu nome</span><input id="from" maxlength="60" autocomplete="given-name"></label>
+      <label class="f"><span>Para quem é</span><input id="to" maxlength="60" placeholder="Ex.: Para a Ana, minha esposa"></label>
+      <label class="f"><span>Mensagem</span><textarea id="message" maxlength="280" placeholder="O Letieri pode ler no microfone 🎤"></textarea></label>
+    </section>
+
+    <section class="step" id="tips-step" hidden>
+      <h2><span class="num">3</span> Caixinha para o Letieri <span class="optional">(opcional)</span></h2>
+      <div class="tips" id="tips">
+        <button type="button" class="chip" data-tip="0" aria-pressed="true">Sem caixinha</button>
+        <button type="button" class="chip" data-tip="5" aria-pressed="false">+ R$ 5</button>
+        <button type="button" class="chip" data-tip="10" aria-pressed="false">+ R$ 10</button>
+        <button type="button" class="chip" data-tip="20" aria-pressed="false">+ R$ 20</button>
+        <button type="button" class="chip" data-tip="other" aria-pressed="false">Outro valor</button>
+      </div>
+      <input id="tip-other" type="number" inputmode="decimal" min="1" max="1000" step="1" placeholder="R$" hidden>
+    </section>
+
+    <p class="error" id="error" role="alert"></p>
+  </form>
+</main>
+
+<div class="bar" id="bar" hidden>
+  <div class="bar-in">
+    <div class="total">Total<b id="total">R$ 0,00</b></div>
+    <button class="btn" id="submit" type="submit" form="form">🎶 Pedir</button>
+  </div>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const brl = (v) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  let cfg = null;
+  let tip = 0;
+
+  fetch("/api/config").then((r) => r.json()).then((c) => { if (c.heroPhoto) $("photo").src = c.heroPhoto; }).catch(() => {});
+
+  function renderSongs() {
+    const q = $("search").value.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim();
+    const picked = document.querySelector('input[name="song"]:checked')?.value;
+    const list = $("songs");
+    list.replaceChildren();
+    for (const s of cfg.songs) {
+      const hay = `${s.title} ${s.artist}`.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+      if (q && !hay.includes(q)) continue;
+      const li = document.createElement("li");
+      const label = document.createElement("label");
+      const input = Object.assign(document.createElement("input"), { type: "radio", name: "song", value: s.id, checked: s.id === picked });
+      const text = document.createElement("div");
+      const b = document.createElement("b");
+      b.textContent = s.title;
+      text.append(b);
+      if (s.artist) { const sm = document.createElement("small"); sm.textContent = s.artist; text.append(sm); }
+      label.append(input, text);
+      li.append(label);
+      list.append(li);
+    }
+    if (!list.children.length) list.innerHTML = '<li class="empty">Nenhuma música encontrada.</li>';
+  }
+
+  function updateTotal() {
+    const other = Number($("tip-other").value);
+    const extra = tip === "other" ? (other > 0 ? other : 0) : tip;
+    $("total").textContent = brl(cfg.price + extra);
+    $("submit").textContent = "🎶 Pedir";
+    return extra;
+  }
+
+  $("tips").addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip) return;
+    document.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", c === chip));
+    tip = chip.dataset.tip === "other" ? "other" : Number(chip.dataset.tip);
+    $("tip-other").hidden = tip !== "other";
+    if (tip === "other") $("tip-other").focus();
+    updateTotal();
+  });
+  $("tip-other").addEventListener("input", updateTotal);
+  $("search").addEventListener("input", renderSongs);
+
+  $("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const songId = document.querySelector('input[name="song"]:checked')?.value;
+    if (!songId) { $("error").textContent = "Escolha uma música da lista."; $("search").focus(); return; }
+    $("error").textContent = "";
+    const extra = updateTotal();
+    $("submit").disabled = true;
+    $("submit").textContent = "Abrindo pagamento…";
+    try {
+      const res = await fetch("/api/pedir", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ songId, from: $("from").value, to: $("to").value, message: $("message").value, tip: extra }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Não foi possível fazer o pedido.");
+      location.href = data.checkoutUrl;
+    } catch (err) {
+      $("error").textContent = err.message;
+      $("submit").disabled = false;
+      updateTotal();
+    }
+  });
+
+  // Volta do Mercado Pago: /pedir?pedido=ID&payment_id=...
+  async function showResult(id, paymentId) {
+    $("result").hidden = false;
+    const started = Date.now();
+    const check = async () => {
+      let data;
+      try {
+        const res = await fetch(`/api/pedir/status?id=${encodeURIComponent(id)}${paymentId ? `&payment_id=${encodeURIComponent(paymentId)}` : ""}`);
+        data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+      } catch (err) {
+        $("r-icon").textContent = "⚠️";
+        $("r-title").textContent = "Pedido não encontrado";
+        $("r-text").textContent = "Se você pagou, mostre o comprovante para o Letieri.";
+        return;
+      }
+      $("r-song").textContent = data.artist ? `${data.song} · ${data.artist}` : data.song;
+      if (data.status !== "pending") {
+        $("r-icon").textContent = "🎉";
+        $("r-title").textContent = "Pedido enviado ao Letieri!";
+        $("r-text").textContent = data.to ? `Fique de ouvido: logo ela toca ${data.to.toLowerCase().startsWith("para") ? data.to.charAt(0).toLowerCase() + data.to.slice(1) : "para " + data.to}.` : "Fique de ouvido: logo ela toca no show.";
+        return;
+      }
+      if (Date.now() - started > 10 * 60 * 1000) {
+        $("r-icon").textContent = "⌛";
+        $("r-title").textContent = "Pagamento ainda não confirmado";
+        $("r-text").textContent = "Se você já pagou, aguarde um pouco e atualize a página. Se não pagou, pode fazer um novo pedido.";
+        return;
+      }
+      setTimeout(check, 4000);
+    };
+    check();
+  }
+
+  const params = new URLSearchParams(location.search);
+  if (params.get("pedido")) {
+    showResult(params.get("pedido"), params.get("payment_id") || params.get("collection_id"));
+  } else {
+    fetch("/api/pedir").then((r) => r.json()).then((data) => {
+      if (!data.active || !data.ready) { $("closed").hidden = false; return; }
+      cfg = data;
+      $("title").textContent = data.title;
+      $("lead").textContent = data.text;
+      $("tips-step").hidden = !data.tips;
+      $("form").hidden = false;
+      $("bar").hidden = false;
+      renderSongs();
+      updateTotal();
+    }).catch(() => { $("closed").hidden = false; });
+  }
+</script>
+</body>
+</html>

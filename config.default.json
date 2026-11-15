@@ -73,5 +73,13 @@
         "type": "Restaurante"
       }
     ]
+  },
+  "requests": {
+    "active": false,
+    "title": "Peça sua música",
+    "text": "Escolha uma música do repertório, deixe uma dedicatória se quiser, e o Letieri toca pra você.",
+    "price": 10,
+    "tips": true,
+    "songs": []
   }
 }

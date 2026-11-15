@@ -10,6 +10,9 @@ Site de agendamentos com painel admin.
   - **Agenda:** marca e libera as datas ocupadas.
   - **Oferta especial:** cartão configurável que aparece logo abaixo da foto.
   - **Vídeos:** envio de arquivo ou link do YouTube.
+  - **Pedidos:** repertório, valor do pedido, caixinha, QR code do palco e a fila do show.
+- **Pedir música** (`/pedir`): página aberta pelo QR code. O cliente escolhe a música, escreve a dedicatória,
+  paga pelo Mercado Pago (Pix ou cartão) e o pedido entra na fila do admin depois que o pagamento é aprovado.
 
 ## Publicar na Vercel
 
@@ -22,8 +25,11 @@ Site de agendamentos com painel admin.
      As variáveis `KV_REST_API_URL` e `KV_REST_API_TOKEN` são criadas automaticamente.
    - **Blob**: crie um store e conecte ao projeto. Guarda os vídeos enviados.
      A variável `BLOB_READ_WRITE_TOKEN` é criada automaticamente.
-4. Faça um novo deploy (**Deployments → Redeploy**) para as variáveis valerem.
-5. Acesse `https://SEU-PROJETO.vercel.app/admin` e entre com a senha.
+4. Para os pedidos de música: em **Environment Variables**, crie `MP_ACCESS_TOKEN` com o Access Token de produção
+   do Mercado Pago (mercadopago.com.br/developers → Suas integrações → Credenciais de produção).
+   O site informa o endereço do webhook ao Mercado Pago em cada pedido; não é preciso cadastrar nada lá.
+5. Faça um novo deploy (**Deployments → Redeploy**) para as variáveis valerem.
+6. Acesse `https://SEU-PROJETO.vercel.app/admin` e entre com a senha.
 
 Sem o Redis o site abre normalmente com o conteúdo padrão, mas o admin não consegue salvar.
 Sem o Blob, o admin aceita apenas vídeos do YouTube.
