@@ -40,6 +40,21 @@
   }
   .notice b { color: var(--gold-2); }
   .step { margin-top: 26px; }
+  .pay { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pay-opt {
+    font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 14px 10px; cursor: pointer; display: grid; gap: 2px; justify-items: center; text-align: center;
+  }
+  .pay-opt span { font-size: 1.5rem; }
+  .pay-opt b { font-size: 1.05rem; }
+  .pay-opt small { color: var(--muted); font-size: .78rem; }
+  .pay-opt[aria-pressed="true"] { border-color: var(--gold); background: rgba(217, 169, 91, .12); box-shadow: 0 0 0 1px var(--gold); }
+  .pix-tag { color: var(--gold); font-weight: 800; font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 8px; }
+  .pix-valor { font-size: 1.8rem; font-weight: 800; margin-bottom: 14px; }
+  .pix-qr { background: #fff; border-radius: 14px; padding: 10px; width: 240px; height: 240px; margin: 0 auto 16px; display: block; image-rendering: pixelated; }
+  .pix-qr:not([src]) { display: none; }
+  .pix-help { font-size: .9rem; margin-top: 14px !important; }
+  .pix-wait { color: var(--gold-2) !important; font-weight: 600; margin: 0 !important; }
   .step h2 { font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
   .num { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--gold); color: #1b1207; font: 800 .85rem "Manrope", sans-serif; flex: none; }
   .optional { color: var(--muted); font: 500 .85rem "Manrope", sans-serif; }
@@ -110,7 +125,7 @@
     <div class="big" id="r-icon">⏳</div>
     <h2 id="r-title">Confirmando o pagamento…</h2>
     <div class="song" id="r-song"></div>
-    <p id="r-text">Assim que o Mercado Pago confirmar, o seu pedido chega ao Letieri.</p>
+    <p id="r-text">Assim que o pagamento for confirmado, o seu pedido chega ao Letieri.</p>
     <a class="btn" href="/pedir" id="r-again">Pedir outra música</a>
   </div>
 
@@ -142,8 +157,27 @@
       <input id="tip-other" type="number" inputmode="decimal" min="1" max="1000" step="1" placeholder="R$" hidden>
     </section>
 
+    <section class="step" id="pay-step" hidden>
+      <h2><span class="num" id="pay-num">4</span> Forma de pagamento</h2>
+      <div class="pay" id="pay">
+        <button type="button" class="pay-opt" data-method="pix" aria-pressed="true"><span>⚡</span><b>Pix</b><small>QR code ou copia e cola</small></button>
+        <button type="button" class="pay-opt" data-method="card" aria-pressed="false"><span>💳</span><b>Cartão</b><small>pelo Mercado Pago</small></button>
+      </div>
+    </section>
+
     <p class="error" id="error" role="alert"></p>
   </form>
+
+  <!-- Pagamento por Pix (Woovi) -->
+  <div class="card" id="pix" hidden>
+    <div class="pix-tag">⚡ Pague com Pix</div>
+    <div class="song" id="pix-song"></div>
+    <div class="pix-valor" id="pix-valor"></div>
+    <img class="pix-qr" id="pix-qr" alt="QR code Pix" width="240" height="240">
+    <button class="btn" type="button" id="pix-copy">📋 Copiar código Pix</button>
+    <p class="pix-help">Abra o app do seu banco, escolha <b>Pix → Pix copia e cola</b> e cole o código. Ou escaneie o QR code de outro celular.</p>
+    <p class="pix-wait">⏳ Aguardando o pagamento… esta tela muda sozinha quando o Pix cair.</p>
+  </div>
 </main>
 
 <div class="bar" id="bar" hidden>
@@ -153,11 +187,13 @@
   </div>
 </div>
 
+<script src="assets/vendor/qrcode.js"></script>
 <script>
   const $ = (id) => document.getElementById(id);
   const brl = (v) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   let cfg = null;
   let tip = 0;
+  let method = "pix";
 
   fetch("/api/config").then((r) => r.json()).then((c) => { if (c.heroPhoto) $("photo").src = c.heroPhoto; }).catch(() => {});
 
@@ -203,6 +239,12 @@
   });
   $("tip-other").addEventListener("input", updateTotal);
   $("search").addEventListener("input", renderSongs);
+  $("pay").addEventListener("click", (e) => {
+    const opt = e.target.closest(".pay-opt");
+    if (!opt) return;
+    method = opt.dataset.method;
+    document.querySelectorAll(".pay-opt").forEach((o) => o.setAttribute("aria-pressed", o === opt));
+  });
 
   $("form").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -211,16 +253,22 @@
     $("error").textContent = "";
     const extra = updateTotal();
     $("submit").disabled = true;
-    $("submit").textContent = "Abrindo pagamento…";
+    $("submit").textContent = method === "pix" ? "Gerando o Pix…" : "Abrindo pagamento…";
     try {
       const res = await fetch("/api/pedir", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ songId, from: $("from").value, to: $("to").value, message: $("message").value, tip: extra }),
+        body: JSON.stringify({ songId, from: $("from").value, to: $("to").value, message: $("message").value, tip: extra, method }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Não foi possível fazer o pedido.");
-      location.href = data.checkoutUrl;
+      if (!data.pix) { location.href = data.checkoutUrl; return; }
+      // Pix: mostra o QR aqui mesmo e espera o pagamento cair.
+      history.replaceState(null, "", `/pedir?pedido=${data.id}`);
+      $("form").hidden = true;
+      $("bar").hidden = true;
+      scrollTo(0, 0);
+      showResult(data.id);
     } catch (err) {
       $("error").textContent = err.message;
       $("submit").disabled = false;
@@ -228,10 +276,29 @@
     }
   });
 
-  // Volta do Mercado Pago: /pedir?pedido=ID&payment_id=...
+  function showPix(pix, song) {
+    $("pix-song").textContent = song;
+    $("pix-valor").textContent = brl(pix.amount);
+    // QR gerado aqui mesmo a partir do código Pix (não depende da imagem da Woovi).
+    try {
+      const qr = qrcode(0, "M");
+      qr.addData(pix.brCode);
+      qr.make();
+      $("pix-qr").src = qr.createDataURL(8, 2);
+    } catch { if (pix.qrCodeImage) $("pix-qr").src = pix.qrCodeImage; }
+    $("pix-copy").onclick = async () => {
+      try { await navigator.clipboard.writeText(pix.brCode); $("pix-copy").textContent = "✓ Código copiado!"; }
+      catch { prompt("Copie o código Pix:", pix.brCode); }
+    };
+    $("result").hidden = true;
+    $("pix").hidden = false;
+  }
+
+  // Acompanha o pedido: Pix na tela ou volta do Mercado Pago (/pedir?pedido=ID&payment_id=...).
   async function showResult(id, paymentId) {
     $("result").hidden = false;
     const started = Date.now();
+    let pixAberto = false;
     const check = async () => {
       let data;
       try {
@@ -245,6 +312,14 @@
         return;
       }
       $("r-song").textContent = data.artist ? `${data.song} · ${data.artist}` : data.song;
+      if (data.status === "pending" && data.pix) {
+        if (!pixAberto) showPix(data.pix, $("r-song").textContent);
+        pixAberto = true;
+        setTimeout(check, 3000);
+        return;
+      }
+      $("pix").hidden = true;
+      $("result").hidden = false;
       if (data.status !== "pending") {
         $("r-icon").textContent = "🎉";
         $("r-title").textContent = "Pedido enviado ao Letieri!";
@@ -273,6 +348,11 @@
       $("title").textContent = data.title;
       $("lead").textContent = data.text;
       $("tips-step").hidden = !data.tips;
+      // Com Pix e cartão ligados, o cliente escolhe; com um só, usa esse.
+      const m = data.methods || { card: true };
+      method = m.pix ? "pix" : "card";
+      $("pay-step").hidden = !(m.pix && m.card);
+      $("pay-num").textContent = data.tips ? "4" : "3";
       $("form").hidden = false;
       $("bar").hidden = false;
       renderSongs();

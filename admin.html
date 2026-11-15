@@ -519,7 +519,7 @@
     <section class="panel" role="tabpanel" id="p-pedidos" aria-labelledby="t-pedidos" hidden>
       <h2>Pedidos de música</h2>
       <p class="hint">O cliente lê o QR code no palco, escolhe a música, escreve a dedicatória e paga pelo Mercado Pago. O pedido só aparece aqui depois do pagamento aprovado.</p>
-      <p class="mp-warn" id="mp-warn" hidden>⚠️ Falta ligar o Mercado Pago: na Vercel, em <b>Settings → Environment Variables</b>, crie <b>MP_ACCESS_TOKEN</b> com o Access Token de produção da sua conta Mercado Pago e faça um Redeploy. Até lá, a página de pedidos aparece como fechada.</p>
+      <p class="mp-warn" id="mp-warn" hidden></p>
 
       <div class="queue-head">
         <h3>Fila do show</h3>
@@ -2289,7 +2289,7 @@
   // ---------- Pedidos de música ----------
   let seenPedidos = null; // ids já vistos, para destacar e tocar um aviso nos novos
 
-  function fillPedidosForm(s, ready) {
+  function fillPedidosForm(s, methods) {
     $("pd-active").checked = Boolean(s.active);
     $("pd-price").value = s.price;
     $("pd-tips").checked = Boolean(s.tips);
@@ -2297,7 +2297,16 @@
     $("pd-text").value = s.text || "";
     $("pd-songs").value = (s.songs || []).map((m) => (m.artist ? `${m.title} - ${m.artist}` : m.title)).join("\n");
     countSongs();
-    $("mp-warn").hidden = ready;
+    payWarn(methods);
+  }
+  // Avisa no admin qual forma de pagamento ainda falta ligar na Vercel.
+  function payWarn(m) {
+    const falta = [];
+    if (!m.pix) falta.push("<b>Pix (Woovi)</b>: crie <b>WOOVI_APP_ID</b> com o AppID da Woovi");
+    if (!m.card) falta.push("<b>Cartão (Mercado Pago)</b>: crie <b>MP_ACCESS_TOKEN</b> com o Access Token de produção");
+    $("mp-warn").innerHTML = "⚠️ Na Vercel, em <b>Settings → Environment Variables</b>, falta ligar:<br>• " + falta.join("<br>• ") +
+      "<br>Depois faça um Redeploy." + (m.pix || m.card ? "" : " Até lá, a página de pedidos aparece como fechada.");
+    $("mp-warn").hidden = !falta.length;
   }
   function countSongs() {
     const n = $("pd-songs").value.split("\n").filter((l) => l.trim()).length;
@@ -2331,7 +2340,7 @@
     add("q-ded", ded);
     add("q-msg", p.message && `“${p.message}”`);
     const hora = new Date(p.paidAt || p.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-    add("q-meta", `${hora} · ${brl.format(p.amount)}${p.tip ? ` (caixinha ${brl.format(p.tip)})` : ""}`);
+    add("q-meta", `${hora} · ${brl.format(p.amount)}${p.tip ? ` (caixinha ${brl.format(p.tip)})` : ""}${p.method === "pix" ? " · Pix" : p.method === "card" ? " · Mercado Pago" : ""}`);
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = p.status === "played" ? "btn btn-ghost" : "btn btn-gold";
@@ -2350,8 +2359,8 @@
   async function loadPedidos(fillForm = false) {
     let data;
     try { data = await api("/api/admin/pedidos"); } catch { return; }
-    if (fillForm) fillPedidosForm(data.settings, data.ready);
-    else $("mp-warn").hidden = data.ready;
+    if (fillForm) fillPedidosForm(data.settings, data.methods);
+    else payWarn(data.methods);
     const fila = data.pedidos.filter((p) => p.status === "paid");
     const tocadas = data.pedidos.filter((p) => p.status === "played").reverse();
     const novos = seenPedidos ? fila.filter((p) => !seenPedidos.has(p.id)) : [];
@@ -2419,7 +2428,7 @@
           title: $("pd-title").value, text: $("pd-text").value, songsText: $("pd-songs").value,
         },
       });
-      fillPedidosForm(data.settings, data.ready);
+      fillPedidosForm(data.settings, data.methods);
       setStatus(status, "✓ Salvo!", "ok");
     } catch (err) {
       setStatus(status, err.message, "err");
