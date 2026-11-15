@@ -34,6 +34,11 @@
   h1 { font-size: 2rem; }
   .lead { color: var(--muted); margin: 0 auto; max-width: 440px; }
 
+  .notice {
+    margin: 22px 0 0; padding: 14px 16px; border-radius: 14px; font-size: .95rem; line-height: 1.45;
+    background: rgba(217, 169, 91, .1); border: 1px solid rgba(217, 169, 91, .35); color: var(--text);
+  }
+  .notice b { color: var(--gold-2); }
   .step { margin-top: 26px; }
   .step h2 { font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
   .num { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--gold); color: #1b1207; font: 800 .85rem "Manrope", sans-serif; flex: none; }
@@ -110,6 +115,8 @@
   </div>
 
   <form id="form" hidden novalidate>
+    <p class="notice">⏱️ O Letieri encaixa cada pedido no momento certo do show, então a sua música <b>pode demorar alguns minutos</b> para tocar. Fique de ouvido! 🎶</p>
+
     <section class="step">
       <h2><span class="num">1</span> Escolha a música</h2>
       <input type="search" id="search" placeholder="🔎 Buscar por música ou artista" autocomplete="off">
@@ -241,7 +248,8 @@
       if (data.status !== "pending") {
         $("r-icon").textContent = "🎉";
         $("r-title").textContent = "Pedido enviado ao Letieri!";
-        $("r-text").textContent = data.to ? `Fique de ouvido: logo ela toca ${data.to.toLowerCase().startsWith("para") ? data.to.charAt(0).toLowerCase() + data.to.slice(1) : "para " + data.to}.` : "Fique de ouvido: logo ela toca no show.";
+        const para = data.to ? ` ${data.to.toLowerCase().startsWith("para") ? data.to.charAt(0).toLowerCase() + data.to.slice(1) : "para " + data.to}` : "";
+        $("r-text").textContent = `A sua música${para} já está com o Letieri. Ele vai encaixá-la no momento certo do show, então pode demorar alguns minutos. Fique de ouvido! 🎶`;
         return;
       }
       if (Date.now() - started > 10 * 60 * 1000) {
