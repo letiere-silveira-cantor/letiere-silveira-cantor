@@ -80,6 +80,24 @@
   .qr img { width: 100%; height: auto; image-rendering: pixelated; }
   .qr-link { color: var(--gold-2); font-size: .88rem; word-break: break-all; display: block; margin-bottom: 14px; }
   .qr-actions { justify-content: center; margin-bottom: 0; }
+  .pop {
+    width: min(92vw, 460px); border: 1px solid var(--gold); border-radius: 22px; padding: 28px 24px;
+    background: var(--card); color: var(--text); text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
+  }
+  .pop::backdrop { background: rgba(0, 0, 0, .72); }
+  .pop-tag { color: var(--gold); font-weight: 800; font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 12px; }
+  .pop-song { font-family: "Fraunces", serif; font-size: 2rem; font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
+  .pop-artist { color: var(--muted); margin-top: 4px; }
+  .pop-ded { margin: 20px 0 0; text-align: left; background: var(--bg); border-radius: 14px; padding: 4px 16px; }
+  .pop-ded div { padding: 10px 0; }
+  .pop-ded div + div { border-top: 1px solid var(--line); }
+  .pop-ded dt { color: var(--gold); font-weight: 800; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; }
+  .pop-ded dd { margin: 2px 0 0; font-size: 1.15rem; font-weight: 600; overflow-wrap: anywhere; }
+  .pop-ded:not(:has(div:not([hidden]))) { display: none; }
+  #pop-msg dd { font-style: italic; color: var(--gold-2); }
+  .pop-sem { color: var(--muted); margin: 16px 0 0; }
+  .pop-meta { color: var(--muted); font-size: .88rem; margin-top: 14px; }
+  .pop-actions { display: grid; gap: 10px; margin-top: 20px; }
 
   /* Logotipo */
   .logo { display: inline-flex; flex-direction: column; gap: 3px; line-height: 1; text-decoration: none; }
@@ -945,6 +963,24 @@
     </section>
   </main>
 </div>
+
+<!-- Pop-up de pedido de música pago -->
+<dialog class="pop" id="pedido-pop" aria-labelledby="pop-song">
+  <div class="pop-tag">🎶 Novo pedido de música</div>
+  <div class="pop-song" id="pop-song"></div>
+  <div class="pop-artist" id="pop-artist"></div>
+  <dl class="pop-ded">
+    <div id="pop-from"><dt>De:</dt><dd><span></span></dd></div>
+    <div id="pop-to"><dt>Para:</dt><dd><span></span></dd></div>
+    <div id="pop-msg"><dt>Mensagem:</dt><dd><span></span></dd></div>
+  </dl>
+  <p class="pop-sem" id="pop-sem-ded">Sem dedicatória.</p>
+  <div class="pop-meta" id="pop-meta"></div>
+  <div class="pop-actions">
+    <button class="btn btn-gold" type="button" id="pop-played">✓ Tocada</button>
+    <button class="btn btn-ghost" type="button" id="pop-later">Depois (fica na fila)</button>
+  </div>
+</dialog>
 
 <script src="assets/calendar.js"></script>
 <script src="assets/social-icons.js"></script>
@@ -2332,13 +2368,43 @@
     const deHoje = data.pedidos.filter((p) => new Date(p.paidAt || p.createdAt).toDateString() === hoje);
     const total = deHoje.reduce((s, p) => s + p.amount, 0);
     $("queue-sum").textContent = deHoje.length ? `Hoje: ${deHoje.length} ${deHoje.length === 1 ? "pedido" : "pedidos"} · ${brl.format(total)}` : "";
-    if (novos.length) beep();
+    if (novos.length) { beep(); popQueue.push(...novos); showNextPop(); }
   }
 
-  // Atualiza a fila a cada 10 segundos enquanto a aba Pedidos está aberta.
+  // Pop-up de pedido novo: aparece em qualquer aba do admin, um pedido de cada vez.
+  const popQueue = [];
+  let popAtual = null;
+  function showNextPop() {
+    if ($("pedido-pop").open || !popQueue.length) return;
+    const p = popAtual = popQueue.shift();
+    $("pop-song").textContent = p.song;
+    $("pop-artist").textContent = p.artist || "";
+    const linha = (id, valor) => { $(id).hidden = !valor; $(id).querySelector("span").textContent = valor || ""; };
+    linha("pop-from", p.from);
+    linha("pop-to", p.to && p.to.replace(/^para\s+/i, "").replace(/^./, (c) => c.toUpperCase()));
+    linha("pop-msg", p.message && `“${p.message}”`);
+    $("pop-sem-ded").hidden = Boolean(p.from || p.to || p.message);
+    $("pop-meta").textContent = `${brl.format(p.amount)}${p.tip ? ` · caixinha ${brl.format(p.tip)}` : ""}` +
+      (popQueue.length ? ` · mais ${popQueue.length} na fila` : "");
+    $("pedido-pop").showModal();
+  }
+  $("pop-later").addEventListener("click", () => $("pedido-pop").close());
+  $("pop-played").addEventListener("click", async () => {
+    try {
+      await api("/api/admin/pedidos/tocada", { method: "PUT", body: { id: popAtual.id, played: true } });
+    } catch (err) { alert(err.message); return; }
+    $("pedido-pop").close();
+    loadPedidos();
+  });
+  $("pedido-pop").addEventListener("close", () => setTimeout(showNextPop, 300));
+
+  // Procura pedidos novos a cada 10 segundos (em qualquer aba) e logo que o admin volta para a tela.
   setInterval(() => {
-    if (!$("admin-view").hidden && !$("p-pedidos").hidden && !document.hidden) loadPedidos();
+    if (!$("admin-view").hidden && !document.hidden) loadPedidos();
   }, 10000);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && !$("admin-view").hidden) loadPedidos();
+  });
 
   $("pedidos-form").addEventListener("submit", async (e) => {
     e.preventDefault();
